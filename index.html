@@ -5,272 +5,195 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Carga de datos - Interagrovial</title>
 
- <style>
-  :root{
-    /* Interagrovial dark (verde/amarillo) */
-    --green:#3a5f32;
-    --green-2:#2f4f2a;
-    --yellow:#c9bf4a;
-    --yellow-2:#d7cf62;
+  <style>
+    :root{
+      --jd-green:#367c2b;
+      --jd-yellow:#ffde00;
 
-    --bg:#0f1012;
-    --panel:#141518;
-    --panel-2:#101114;
-    --text:#e7e9ee;
-    --muted:#a6adb8;
+      --bg:#0b0b0d;
+      --text:#e7e7ea;
+      --muted:#a5a7b3;
 
-    --border:rgba(255,255,255,.08);
-    --border-2:rgba(255,255,255,.12);
+      --border:#2a2d35;
+      --border-strong:#3a3f4a;
 
-    --shadow: 0 18px 45px rgba(0,0,0,.55);
-    --shadow2: 0 8px 22px rgba(0,0,0,.45);
+      --shadow:0 18px 45px rgba(0,0,0,.55);
+      --shadow2:0 8px 22px rgba(0,0,0,.35);
+      --radius:16px;
+    }
 
-    --radius:18px;
+    *{box-sizing:border-box}
+    body{
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 22px;
+      background: radial-gradient(1200px 600px at 15% 0%, rgba(54,124,43,.16), transparent 55%),
+                  radial-gradient(1200px 600px at 85% 0%, rgba(255,222,0,.10), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+    }
 
-    --focus: 0 0 0 4px rgba(58,95,50,.30);
-  }
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:14px;flex-wrap:wrap;margin-bottom:14px;
+    }
+    .title{
+      display:flex;align-items:center;gap:12px;margin:0;
+      font-size:22px;font-weight:900;letter-spacing:.2px;
+    }
+    .brandDot{
+      width:14px;height:14px;border-radius:999px;
+      background: var(--jd-green);
+      box-shadow: inset 0 0 0 3px var(--jd-yellow);
+    }
+    .subpill{
+      display:inline-flex;align-items:center;gap:8px;
+      border:1px solid var(--border);
+      padding:8px 12px;border-radius:999px;
+      background: rgba(255,255,255,.04);
+      font-size:12px;color:#cfd1da;
+      box-shadow: var(--shadow2);
+    }
+    .subpill b{color:var(--jd-green)}
 
-  *{box-sizing:border-box}
-  body{
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    margin: 22px;
-    background: radial-gradient(1200px 700px at 20% -10%, rgba(58,95,50,.25), transparent 60%),
-                radial-gradient(900px 600px at 110% 10%, rgba(201,191,74,.12), transparent 55%),
-                var(--bg);
-    color: var(--text);
-  }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+      overflow:hidden;
+    }
+    .accentBar{
+      height:5px;border-radius:999px;
+      background: linear-gradient(90deg, rgba(54,124,43,.95), rgba(255,222,0,.75));
+      margin:-16px -16px 14px -16px;
+      filter: saturate(1.05);
+    }
+    .cardHeader{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:10px;flex-wrap:wrap;margin-bottom:10px;
+    }
+    .card h3{
+      margin:0 0 10px;font-size:13px;
+      text-transform:uppercase;letter-spacing:.10em;
+      color:#d6d7df;
+    }
 
-  /* TOP */
-  .topbar{
-    display:flex;align-items:center;justify-content:space-between;
-    gap:14px;flex-wrap:wrap;margin-bottom:14px;
-  }
-  .title{
-    display:flex;align-items:center;gap:12px;margin:0;
-    font-size:22px;font-weight:900;letter-spacing:.2px;
-  }
-  .brandDot{
-    width:14px;height:14px;border-radius:999px;
-    background: var(--green);
-    box-shadow: inset 0 0 0 3px rgba(201,191,74,.95);
-  }
-  .subpill{
-    display:inline-flex;align-items:center;gap:10px;
-    border:1px solid var(--border);
-    padding:8px 12px;border-radius:999px;
-    background: rgba(20,21,24,.75);
-    font-size:12px;color: var(--muted);
-    box-shadow: var(--shadow2);
-    backdrop-filter: blur(6px);
-  }
-  .subpill b{color: var(--green)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+    label{font-size:12px;color:#cfd1da;display:block;margin-bottom:6px;font-weight:800}
 
-  /* CARDS */
-  .card{
-    background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)),
-                var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    box-shadow: var(--shadow);
-    margin-bottom: 14px;
-    overflow:hidden;
-  }
-  .accentBar{
-    height:4px;border-radius:999px;
-    background: linear-gradient(90deg, var(--green), var(--yellow));
-    margin:-16px -16px 14px -16px;
-    opacity:.95;
-  }
-  .card h3{
-    margin:0 0 10px;font-size:13px;
-    text-transform:uppercase;letter-spacing:.10em;
-    color:#cfd5df;
-  }
-  .cardHeader{
-    display:flex;align-items:center;justify-content:space-between;
-    gap:10px;flex-wrap:wrap;margin-bottom:10px;
-  }
+    input,select{
+      padding:10px 12px;
+      border:1px solid var(--border-strong);
+      border-radius:14px;
+      font-size:14px;
+      min-width:160px;
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      outline:none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    input::placeholder{color:#8c90a3}
+    input:focus,select:focus{
+      border-color: rgba(54,124,43,.85);
+      box-shadow: 0 0 0 4px rgba(54,124,43,.20);
+    }
+    input[type="date"]{min-width:170px;color-scheme:dark}
 
-  .row{
-    display:flex;gap:10px;flex-wrap:wrap;align-items:end;
-  }
-  label{
-    font-size:12px;color:#cfd5df;display:block;margin-bottom:6px;font-weight:800;
-  }
+    button{
+      padding:10px 12px;border:1px solid var(--border-strong);
+      background: rgba(255,255,255,.04);
+      border-radius:14px;cursor:pointer;
+      transition:.12s ease;font-weight:900;color:#e7e7ea;
+      box-shadow: var(--shadow2);
+    }
+    button:hover{transform: translateY(-1px)}
+    button.primary{
+      background: rgba(54,124,43,.85);
+      border-color: rgba(54,124,43,.85);
+      color:#fff;
+      box-shadow: 0 12px 22px rgba(54,124,43,.18);
+    }
+    button.secondary{
+      border-color: rgba(54,124,43,.55);
+      color:#d9f1d3;
+      background: rgba(54,124,43,.12);
+    }
+    button.danger{
+      color:#ffd7dc;border-color:#5a2731;background: rgba(176,0,32,.16);
+    }
+    button.small{padding:7px 10px;border-radius:12px;font-size:12px;box-shadow:none;font-weight:900}
+    button[disabled]{opacity:.6;cursor:not-allowed;transform:none}
 
-  /* INPUTS */
-  input,select{
-    padding:10px 12px;
-    border:1px solid var(--border);
-    border-radius:14px;
-    font-size:14px;
-    min-width:160px;
-    background: rgba(16,17,20,.9);
-    color: var(--text);
-    outline:none;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
-  }
-  input::placeholder{color: rgba(231,233,238,.45)}
-  input:focus,select:focus{
-    border-color: rgba(201,191,74,.35);
-    box-shadow: var(--focus);
-  }
-  input[type="date"]{min-width:170px;color-scheme:dark;}
+    .muted{color:var(--muted);font-size:12px;margin-top:8px}
+    .toast{margin-top:10px;font-size:13px;color:#9cf08a;display:none;font-weight:900}
+    .toast.err{color:#ff8b97}
 
-  /* BUTTONS */
-  button{
-    padding:10px 14px;
-    border:1px solid var(--border);
-    background: rgba(20,21,24,.9);
-    color: var(--text);
-    border-radius:14px;
-    cursor:pointer;
-    transition: transform .12s ease, filter .12s ease, background .12s ease;
-    font-weight:900;
-    box-shadow: var(--shadow2);
-  }
-  button:hover{transform: translateY(-1px)}
-  button.primary{
-    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.10)),
-                var(--green);
-    border-color: rgba(58,95,50,.9);
-    color:#f2f6ef;
-  }
-  button.primary:hover{filter:brightness(1.03)}
-  button.secondary{
-    border-color: var(--border);
-    background: rgba(20,21,24,.85);
-    color:#d8dde6;
-  }
-  button.secondary:hover{filter:brightness(1.04)}
-  button.danger{
-    color:#ffb4b4;
-    border-color: rgba(255,102,102,.28);
-    background: rgba(60,16,16,.35);
-  }
-  button.small{
-    padding:7px 10px;border-radius:12px;font-size:12px;
-    box-shadow:none;font-weight:900;
-  }
-  button[disabled]{opacity:.6;cursor:not-allowed;transform:none}
+    table{
+      width:100%;
+      border-collapse:separate;border-spacing:0;
+      background: rgba(255,255,255,.03);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      overflow:hidden;
+      box-shadow: var(--shadow);
+    }
+    thead th{
+      background: rgba(255,255,255,.02);
+      position:sticky;top:0;z-index:2;
+      text-align:center;
+    }
+    th,td{
+      border-bottom:1px solid rgba(255,255,255,.06);
+      padding:10px;font-size:14px;vertical-align:top;
+      white-space:nowrap;text-align:center;color:#e7e7ea;
+    }
+    th{
+      font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+      color:#cfd1da;position:relative;
+    }
+    th::after{
+      content:"";
+      position:absolute;left:0;bottom:0;width:100%;height:3px;
+      background: linear-gradient(90deg, rgba(54,124,43,.95), rgba(255,222,0,.75));
+      opacity:.95;
+    }
+    tbody tr:nth-child(odd){background: rgba(255,255,255,.01)}
+    tbody tr:hover{background: rgba(54,124,43,.10)}
 
-  .muted{color:var(--muted);font-size:12px;margin-top:8px}
-  .toast{
-    margin-top:10px;font-size:13px;color: var(--yellow-2);
-    display:none;font-weight:900;
-  }
-  .toast.err{color:#ff8f8f}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+    .cell-input{
+      min-width:120px;padding:7px 10px;border-radius:12px;
+      border:1px solid var(--border-strong);
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      text-align:center;
+    }
 
-  /* TABLE */
-  table{
-    width:100%;
-    border-collapse:separate;
-    border-spacing:0;
-    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015)),
-                var(--panel);
-    border:1px solid var(--border);
-    border-radius: var(--radius);
-    overflow:hidden;
-    box-shadow: var(--shadow);
-  }
-  thead th{
-    position:sticky;top:0;z-index:2;
-    background: rgba(20,21,24,.92);
-    text-align:center;
-  }
-  th,td{
-    border-bottom:1px solid rgba(255,255,255,.06);
-    padding:10px;
-    font-size:14px;
-    vertical-align:top;
-    white-space:nowrap;
-    text-align:center;
-    color: var(--text);
-  }
-  th{
-    font-size:12px;letter-spacing:.10em;text-transform:uppercase;
-    color:#cfd5df;position:relative;
-  }
-  th::after{
-    content:"";
-    position:absolute;left:0;bottom:0;width:100%;height:3px;
-    background: linear-gradient(90deg, var(--green), var(--yellow));
-    opacity:.95;
-  }
-  tbody tr:nth-child(odd){background: rgba(255,255,255,.015)}
-  tbody tr:hover{background: rgba(58,95,50,.14)}
+    .w220{min-width:220px}
+    .w200{min-width:200px}
+    .w160{min-width:160px}
+    .w140{min-width:140px}
+    .w110{min-width:110px}
 
-  .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-
-  .cell-input{
-    min-width:120px;
-    padding:7px 10px;border-radius:12px;
-    border:1px solid var(--border);
-    background: rgba(16,17,20,.92);
-    color: var(--text);
-    text-align:center;
-  }
-
-  /* widths */
-  .w260{min-width:260px}
-  .w220{min-width:220px}
-  .w200{min-width:200px}
-  .w160{min-width:160px}
-  .w140{min-width:140px}
-  .w110{min-width:110px}
-
-  /* FOOTER */
-  .footer{
-    position:fixed;left:16px;bottom:12px;font-size:12px;
-    color: var(--text);
-    background: rgba(20,21,24,.75);
-    border:1px solid var(--border);
-    border-left:7px solid var(--green);
-    padding:9px 12px;border-radius:14px;
-    box-shadow: var(--shadow2);
-    backdrop-filter: blur(6px);
-  }
-  .footer b{color: var(--green)}
-
-  /* Extra: select arrow */
-  select{
-    appearance:none;
-    background-image:
-      linear-gradient(45deg, transparent 50%, rgba(231,233,238,.65) 50%),
-      linear-gradient(135deg, rgba(231,233,238,.65) 50%, transparent 50%),
-      linear-gradient(to right, transparent, transparent);
-    background-position:
-      calc(100% - 18px) calc(50% - 3px),
-      calc(100% - 13px) calc(50% - 3px),
-      calc(100% - 2.2rem) 0.45rem;
-    background-size:5px 5px, 5px 5px, 1px 1.8rem;
-    background-repeat:no-repeat;
-    padding-right:34px;
-  }
-
-  a.link{
-    color: var(--yellow-2);
-    text-decoration: none;
-    font-weight: 900;
-  }
-  a.link:hover{ text-decoration: underline; }
-
-  .linksList{
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-    align-items:center;
-  }
-</style>
-
+    .footer{
+      position:fixed;left:16px;bottom:12px;font-size:12px;
+      color:#e7e7ea;background: rgba(0,0,0,.45);
+      border:1px solid var(--border);
+      border-left:7px solid var(--jd-green);
+      padding:9px 12px;border-radius:14px;
+      box-shadow: var(--shadow2);
+      backdrop-filter: blur(6px);
+    }
+    .footer b{color:var(--jd-green)}
+  </style>
 </head>
 
 <body>
-
   <div class="topbar">
     <h1 class="title"><span class="brandDot"></span> Carga de datos</h1>
-    <div class="subpill">Sistema <b>Interagrovial</b> · verde/amarillo</div>
+    <div class="subpill">Estilo <b>Interagrovial</b> · verde/amarillo</div>
   </div>
 
   <!-- FILTROS + EXPORT -->
@@ -316,6 +239,15 @@
       </div>
 
       <div>
+        <label>Cierre de carpeta</label>
+        <select id="fCierre">
+          <option value="">(Todas)</option>
+          <option value="SI">SI</option>
+          <option value="NO">NO</option>
+        </select>
+      </div>
+
+      <div>
         <label>Fecha estimada desde</label>
         <input id="fDateFrom" type="date"/>
       </div>
@@ -326,7 +258,7 @@
       </div>
     </div>
 
-    <div class="muted">Los filtros se aplican automáticamente sobre la tabla. “Descargar Excel” exporta lo que estás viendo (con filtros).</div>
+    <div class="muted">Los filtros se aplican automáticamente sobre la tabla. “Descargar Excel” exporta lo filtrado.</div>
   </div>
 
   <!-- FORMULARIO AGREGAR -->
@@ -381,22 +313,12 @@
         </select>
       </div>
 
-      <!-- ✅ CAMPOS -->
       <div>
-        <label>Día Doc Factura adjunta</label>
-        <input id="dia_doc_factura" type="date" />
-      </div>
-
-      <div>
-        <label>Cierre carpeta</label>
-        <input id="cierre_carpeta" type="date" />
-      </div>
-
-      <!-- ✅ AHORA MULTI-ARCHIVO -->
-      <div>
-        <label>Adjuntar (PDF/Word) - varios</label>
-        <input id="adjunto" class="w260" type="file" multiple
-          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+        <label>Cierre de carpeta</label>
+        <select id="cierre">
+          <option value="SI">SI</option>
+          <option value="NO">NO</option>
+        </select>
       </div>
 
       <button id="addBtn" class="primary" type="button">Agregar</button>
@@ -419,9 +341,7 @@
         <th>Orden compra</th>
         <th>Condiciones</th>
         <th>WIS</th>
-        <th>Día Doc Factura</th>
         <th>Cierre carpeta</th>
-        <th>Adjuntos</th>
         <th>Acciones</th>
       </tr>
     </thead>
@@ -437,24 +357,18 @@
       serverTimestamp, query, orderBy, onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-    // ✅ Storage para adjuntos
-    import {
-      getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject
-    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
-
+    // ✅ PEGAR TU CONFIG REAL
     const firebaseConfig = {
-      apiKey: "AIzaSyDIgNEkvCng0XrqGvDAuutCBSglodO3644",
-      authDomain: "carpetas-17846.firebaseapp.com",
-      projectId: "carpetas-17846",
-      storageBucket: "carpetas-17846",
-      messagingSenderId: "513234224676",
-      appId: "1:513234224676:web:0461b1fbfcea43deb5bab1",
-      measurementId: "G-NRPLGK20YK"
+      apiKey: "PEGAR_TU_API_KEY",
+      authDomain: "PEGAR_TU_AUTH_DOMAIN",
+      projectId: "PEGAR_TU_PROJECT_ID",
+      storageBucket: "PEGAR_TU_STORAGE_BUCKET",
+      messagingSenderId: "PEGAR_TU_SENDER_ID",
+      appId: "PEGAR_TU_APP_ID"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const storage = getStorage(app);
 
     const $ = (id) => document.getElementById(id);
     const tbody = $("tbody");
@@ -489,9 +403,7 @@
       $("oc").value = "";
       $("cond").value = "SI";
       $("wis").value = "SI";
-      $("dia_doc_factura").value = "";
-      $("cierre_carpeta").value = "";
-      $("adjunto").value = "";
+      $("cierre").value = "SI";
     }
 
     function withTimeout(promise, ms, timeoutMsg="Tiempo de espera agotado") {
@@ -500,66 +412,14 @@
       return Promise.race([promise, timeout]).finally(() => clearTimeout(t));
     }
 
-    // ===== Adjuntos (Storage) =====
-    function safeFileName(name){
-      return (name || "archivo").replace(/[^\w.\-]+/g, "_");
-    }
-
-    async function uploadOneAttachment(file, rowId){
-      const path = `attachments/rows/${rowId}/${Date.now()}_${safeFileName(file.name)}`;
-      const fileRef = sRef(storage, path);
-      await uploadBytes(fileRef, file);
-      const url = await getDownloadURL(fileRef);
-      return { name: file.name, url, path };
-    }
-
-    async function uploadManyAttachments(files, rowId){
-      const list = [];
-      for (const f of files) {
-        const a = await uploadOneAttachment(f, rowId);
-        list.push(a);
-      }
-      return list;
-    }
-
-    async function tryDeleteAttachment(path){
-      if(!path) return;
-      try{
-        await deleteObject(sRef(storage, path));
-      }catch(e){
-        console.warn("No se pudo borrar adjunto:", e?.code || e);
-      }
-    }
-
-    async function tryDeleteAllAttachments(attachments){
-      if (!Array.isArray(attachments)) return;
-      for (const a of attachments) {
-        await tryDeleteAttachment(a?.path);
-      }
-    }
-
-    // Compat: si hay viejo attachmentUrl/Name/Path, lo convierto a attachments[]
-    function normalizeAttachments(r){
-      if (Array.isArray(r.attachments)) return r.attachments;
-      if (r.attachmentUrl) {
-        return [{ name: r.attachmentName || "Adjunto", url: r.attachmentUrl, path: r.attachmentPath || "" }];
-      }
-      return [];
-    }
-
     // ---- Filtros ----
     function norm(s){ return (s ?? "").toString().trim().toLowerCase(); }
 
     function matchesText(row, q){
       if (!q) return true;
-      const atts = normalizeAttachments(row);
-      const attNames = atts.map(a => a?.name).join(" | ");
-
       const hay = [
         row.factura, row.division, row.transporte, row.carpeta,
-        row.fecha_estimada, row.oc, row.cond, row.wis,
-        row.dia_doc_factura, row.cierre_carpeta,
-        attNames
+        row.fecha_estimada, row.oc, row.cond, row.wis, row.cierre
       ].map(norm).join(" | ");
       return hay.includes(q);
     }
@@ -578,6 +438,7 @@
       const fDivision = $("fDivision").value;
       const fCond = $("fCond").value;
       const fWis = $("fWis").value;
+      const fCierre = $("fCierre").value;
       const from = $("fDateFrom").value || "";
       const to = $("fDateTo").value || "";
 
@@ -586,6 +447,7 @@
         if (fDivision && (r.division || "") !== fDivision) return false;
         if (fCond && (r.cond || "") !== fCond) return false;
         if (fWis && (r.wis || "") !== fWis) return false;
+        if (fCierre && (r.cierre || "") !== fCierre) return false;
         if (!matchesText(r, q)) return false;
         if (!inDateRange(r, from, to)) return false;
         return true;
@@ -602,7 +464,7 @@
       if (values.includes(current)) sel.value = current;
     }
 
-    ["q","fDivision","fCond","fWis","fDateFrom","fDateTo"].forEach(id=>{
+    ["q","fDivision","fCond","fWis","fCierre","fDateFrom","fDateTo"].forEach(id=>{
       $(id).addEventListener("input", applyFilters);
       $(id).addEventListener("change", applyFilters);
     });
@@ -612,6 +474,7 @@
       $("fDivision").value = "";
       $("fCond").value = "";
       $("fWis").value = "";
+      $("fCierre").value = "";
       $("fDateFrom").value = "";
       $("fDateTo").value = "";
       applyFilters();
@@ -628,20 +491,13 @@
     function toCsv(rows){
       const headers = [
         "Fecha carga","Factura","División","Transporte","Carpeta",
-        "Fecha estimada","Orden compra","Condiciones","WIS",
-        "Día Doc Factura","Cierre carpeta",
-        "Adjuntos Nombres","Adjuntos URLs"
+        "Fecha estimada","Orden compra","Condiciones","WIS","Cierre carpeta"
       ];
       const lines = [headers.map(csvEscape).join(",")];
 
       rows.forEach(x=>{
         const r = x.data;
         const dt = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : "";
-
-        const atts = normalizeAttachments(r);
-        const names = atts.map(a => a?.name || "").join(" | ");
-        const urls  = atts.map(a => a?.url  || "").join(" | ");
-
         const line = [
           dt,
           r.factura || "",
@@ -652,10 +508,7 @@
           r.oc || "",
           r.cond || "",
           r.wis || "",
-          r.dia_doc_factura || "",
-          r.cierre_carpeta || "",
-          names,
-          urls
+          r.cierre || ""
         ].map(csvEscape).join(",");
         lines.push(line);
       });
@@ -683,7 +536,7 @@
       showToast("Descarga lista (CSV para Excel)");
     });
 
-    // ---- CRUD (Agregar) ----
+    // ---- CRUD ----
     addBtn.addEventListener("click", async () => {
       const data = {
         factura: $("factura").value.trim(),
@@ -694,37 +547,21 @@
         oc: $("oc").value.trim(),
         cond: $("cond").value,
         wis: $("wis").value,
-        dia_doc_factura: $("dia_doc_factura").value || "",
-        cierre_carpeta: $("cierre_carpeta").value || "",
+        cierre: $("cierre").value,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
 
       const empty =
         !data.factura && !data.division && !data.transporte && !data.carpeta &&
-        !data.fecha_estimada && !data.oc && !data.dia_doc_factura && !data.cierre_carpeta;
+        !data.fecha_estimada && !data.oc;
 
       if (empty) { alert("Ingresá al menos un dato para agregar."); return; }
 
       try {
         msgEl.textContent = "Guardando...";
         addBtn.disabled = true;
-
-        // 1) creo el doc (necesito id)
-        const docRef = await withTimeout(addDoc(collection(db, "rows"), data), 15000);
-
-        // 2) subo adjuntos si hay (MULTIPLE)
-        const files = Array.from($("adjunto").files || []);
-        if (files.length) {
-          msgEl.textContent = `Subiendo adjuntos (${files.length})...`;
-          const uploaded = await withTimeout(uploadManyAttachments(files, docRef.id), 120000);
-          await withTimeout(updateDoc(doc(db, "rows", docRef.id), {
-            attachments: uploaded,
-            updatedAt: serverTimestamp()
-          }), 15000);
-          $("adjunto").value = "";
-        }
-
+        await withTimeout(addDoc(collection(db, "rows"), data), 15000);
         msgEl.textContent = "";
         clearAddForm();
         showToast("Agregado con éxito");
@@ -732,23 +569,11 @@
         console.error(e);
         msgEl.textContent = "";
         showToast("No se pudo guardar", true);
-        alert("No se pudo guardar: " + (e.code || "") + " " + (e.message || ""));
+        alert("No se pudo guardar. Revisá reglas/permisos o la red.");
       } finally {
         addBtn.disabled = false;
       }
     });
-
-    function renderAttachmentsCell(r){
-      const atts = normalizeAttachments(r);
-      if (!atts.length) return "-";
-      return `<div class="linksList">${
-        atts.map(a =>
-          `<a class="link" href="${escapeHtml(a.url)}" target="_blank" rel="noopener noreferrer">
-            Abrir: ${escapeHtml(a.name)}
-          </a>`
-        ).join("")
-      }</div>`;
-    }
 
     function renderRow(id, r) {
       const dt = r.createdAt?.toDate ? r.createdAt.toDate() : null;
@@ -767,9 +592,7 @@
             <td>${escapeHtml(r.oc)}</td>
             <td>${escapeHtml(r.cond)}</td>
             <td>${escapeHtml(r.wis)}</td>
-            <td>${escapeHtml(r.dia_doc_factura)}</td>
-            <td>${escapeHtml(r.cierre_carpeta)}</td>
-            <td>${renderAttachmentsCell(r)}</td>
+            <td>${escapeHtml(r.cierre)}</td>
             <td>
               <div class="actions">
                 <button class="small secondary" data-action="edit">Editar</button>
@@ -788,24 +611,11 @@
       const oc = escapeHtml(r.oc || "");
       const cond = r.cond || "SI";
       const wis = r.wis || "SI";
-      const dia_doc_factura = escapeHtml(r.dia_doc_factura || "");
-      const cierre_carpeta = escapeHtml(r.cierre_carpeta || "");
-
-      const actuales = normalizeAttachments(r);
-      const verActual = actuales.length
-        ? `<div class="linksList" style="margin-top:6px">${
-            actuales.map(a =>
-              `<a class="link" href="${escapeHtml(a.url)}" target="_blank" rel="noopener noreferrer">
-                Actual: ${escapeHtml(a.name)}
-              </a>`
-            ).join("")
-          }</div>`
-        : "";
+      const cierre = r.cierre || "SI";
 
       return `
         <tr data-id="${id}">
           <td>${escapeHtml(dtTxt)}</td>
-
           <td><input class="cell-input w140" data-field="factura" value="${factura}"></td>
           <td><input class="cell-input w200" data-field="division" value="${division}"></td>
           <td><input class="cell-input w200" data-field="transporte" value="${transporte}"></td>
@@ -827,14 +637,11 @@
             </select>
           </td>
 
-          <td><input class="cell-input w160" type="date" data-field="dia_doc_factura" value="${dia_doc_factura}"></td>
-          <td><input class="cell-input w160" type="date" data-field="cierre_carpeta" value="${cierre_carpeta}"></td>
-
           <td>
-            <input class="cell-input w260" type="file" multiple data-file="attachments"
-              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
-            ${verActual}
-            <div class="muted" style="margin-top:6px">*Los nuevos archivos se agregan (no reemplazan).</div>
+            <select class="cell-input w110" data-field="cierre">
+              <option value="SI" ${cierre==="SI" ? "selected" : ""}>SI</option>
+              <option value="NO" ${cierre==="NO" ? "selected" : ""}>NO</option>
+            </select>
           </td>
 
           <td>
@@ -853,7 +660,7 @@
       tbody.innerHTML = dataToDraw.map(x => renderRow(x.id, x.data)).join("");
     }
 
-    // Listener tiempo real
+    // Listener en tiempo real
     const qSnap = query(collection(db, "rows"), orderBy("createdAt", "desc"));
     onSnapshot(qSnap, (snap) => {
       cache = [];
@@ -865,7 +672,7 @@
       showToast("No se pudo leer Firestore", true);
     });
 
-    // Acciones tabla
+    // Acciones de tabla
     tbody.addEventListener("click", async (e) => {
       const btn = e.target.closest("button[data-action]");
       if (!btn) return;
@@ -883,42 +690,27 @@
         const fields = tr.querySelectorAll("[data-field]");
         const updated = {};
         fields.forEach(el => updated[el.dataset.field] = (el.value ?? "").toString().trim());
+
         updated.cond = updated.cond === "NO" ? "NO" : "SI";
         updated.wis  = updated.wis  === "NO" ? "NO" : "SI";
+        updated.cierre  = updated.cierre === "NO" ? "NO" : "SI";
 
         const empty =
           !updated.factura && !updated.division && !updated.transporte && !updated.carpeta &&
-          !updated.fecha_estimada && !updated.oc &&
-          !updated.dia_doc_factura && !updated.cierre_carpeta;
+          !updated.fecha_estimada && !updated.oc;
 
         if (empty) { alert("La fila no puede quedar vacía."); return; }
 
         try {
           btn.disabled = true;
-
-          // adjuntos nuevos (MULTIPLE) => se agregan
-          const fileInput = tr.querySelector('[data-file="attachments"]');
-          const newFiles = Array.from(fileInput?.files || []);
-          const old = cache.find(x => x.id === id)?.data || {};
-          const currentAtts = normalizeAttachments(old);
-
-          if (newFiles.length) {
-            const uploaded = await withTimeout(uploadManyAttachments(newFiles, id), 120000);
-            updated.attachments = currentAtts.concat(uploaded);
-          } else {
-            // si no seleccionó nuevos, mantengo los actuales (si existen)
-            if (currentAtts.length) updated.attachments = currentAtts;
-          }
-
           await withTimeout(updateDoc(doc(db, "rows", id), { ...updated, updatedAt: serverTimestamp() }), 15000);
-
           editingRowId = null;
           showToast("Modificado con éxito");
           applyFilters();
         } catch (err) {
           console.error(err);
           showToast("No se pudo modificar", true);
-          alert("No se pudo modificar: " + (err.code || "") + " " + (err.message || ""));
+          alert("No se pudo modificar. Revisá reglas/permisos o red.");
         } finally {
           btn.disabled = false;
         }
@@ -929,19 +721,13 @@
         if (!confirm("¿Seguro que querés eliminar esta fila?")) return;
         try {
           btn.disabled = true;
-
-          // borrar TODOS los adjuntos
-          const row = cache.find(x => x.id === id)?.data || {};
-          const atts = normalizeAttachments(row);
-          await tryDeleteAllAttachments(atts);
-
           await withTimeout(deleteDoc(doc(db, "rows", id)), 15000);
           if (editingRowId === id) editingRowId = null;
           showToast("Eliminado con éxito");
         } catch (err) {
           console.error(err);
           showToast("No se pudo eliminar", true);
-          alert("No se pudo eliminar: " + (err.code || "") + " " + (err.message || ""));
+          alert("No se pudo eliminar. Revisá reglas/permisos o red.");
         } finally {
           btn.disabled = false;
         }
