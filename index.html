@@ -422,14 +422,12 @@
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
 
     // ✅ PEGAR TU CONFIG REAL (IMPORTANTE: storageBucket real)
-    const firebaseConfig = {
-      apiKey: "PEGAR_TU_API_KEY",
-      authDomain: "PEGAR_TU_AUTH_DOMAIN",
-      projectId: "PEGAR_TU_PROJECT_ID",
-      storageBucket: "PEGAR_TU_STORAGE_BUCKET",  // ej: "tu-proyecto.appspot.com"
-      messagingSenderId: "PEGAR_TU_SENDER_ID",
-      appId: "PEGAR_TU_APP_ID"
-    };
+   const firebaseConfig = {
+  projectId: "carpetas-17846",
+  authDomain: "carpetas-17846.firebaseapp.com",
+  storageBucket: "carpetas-17846.appspot.com",
+};
+
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -953,3 +951,4 @@
   </script>
 </body>
 </html>
+
