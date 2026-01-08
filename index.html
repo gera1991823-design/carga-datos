@@ -442,7 +442,7 @@
     const db = getFirestore(app);
 
     // ✅ Fuerzo bucket explícito (evita “bucket equivocado”)
-    const storage = getStorage(app, "gs://carpetas-17846.appspot.com");
+    const storage = getStorage(app);
 
     const $ = (id) => document.getElementById(id);
     const tbody = $("tbody");
@@ -875,5 +875,6 @@
   </script>
 </body>
 </html>
+
 
 
