@@ -5,315 +5,257 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Carga de datos - Interagrovial</title>
 
-  <style>
-    :root{
-      --green:#3a5f32;
-      --green-2:#2f4f2a;
-      --yellow:#c9bf4a;
-      --yellow-2:#d7cf62;
+ <style>
+  :root{
+    /* Interagrovial dark (verde/amarillo) */
+    --green:#3a5f32;           /* botón verde (tipo captura) */
+    --green-2:#2f4f2a;
+    --yellow:#c9bf4a;          /* línea amarilla */
+    --yellow-2:#d7cf62;
 
-      --bg:#0f1012;
-      --panel:#141518;
-      --panel-2:#101114;
-      --text:#e7e9ee;
-      --muted:#a6adb8;
+    --bg:#0f1012;              /* fondo general */
+    --panel:#141518;           /* card */
+    --panel-2:#101114;         /* variación */
+    --text:#e7e9ee;            /* texto principal */
+    --muted:#a6adb8;           /* texto secundario */
 
-      --border:rgba(255,255,255,.08);
-      --border-2:rgba(255,255,255,.12);
+    --border:rgba(255,255,255,.08);
+    --border-2:rgba(255,255,255,.12);
 
-      --shadow: 0 18px 45px rgba(0,0,0,.55);
-      --shadow2: 0 8px 22px rgba(0,0,0,.45);
+    --shadow: 0 18px 45px rgba(0,0,0,.55);
+    --shadow2: 0 8px 22px rgba(0,0,0,.45);
 
-      --radius:18px;
-      --focus: 0 0 0 4px rgba(58,95,50,.30);
-    }
+    --radius:18px;
 
-    *{box-sizing:border-box}
-    body{
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      margin: 22px;
-      background: radial-gradient(1200px 700px at 20% -10%, rgba(58,95,50,.25), transparent 60%),
-                  radial-gradient(900px 600px at 110% 10%, rgba(201,191,74,.12), transparent 55%),
-                  var(--bg);
-      color: var(--text);
-    }
+    --focus: 0 0 0 4px rgba(58,95,50,.30);
+  }
 
-    .topbar{
-      display:flex;align-items:center;justify-content:space-between;
-      gap:14px;flex-wrap:wrap;margin-bottom:14px;
-    }
-    .title{
-      display:flex;align-items:center;gap:12px;margin:0;
-      font-size:22px;font-weight:900;letter-spacing:.2px;
-    }
-    .brandDot{
-      width:14px;height:14px;border-radius:999px;
-      background: var(--green);
-      box-shadow: inset 0 0 0 3px rgba(201,191,74,.95);
-    }
-    .subpill{
-      display:inline-flex;align-items:center;gap:10px;
-      border:1px solid var(--border);
-      padding:8px 12px;border-radius:999px;
-      background: rgba(20,21,24,.75);
-      font-size:12px;color: var(--muted);
-      box-shadow: var(--shadow2);
-      backdrop-filter: blur(6px);
-    }
-    .subpill b{color: var(--green)}
+  *{box-sizing:border-box}
+  body{
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    margin: 22px;
+    background: radial-gradient(1200px 700px at 20% -10%, rgba(58,95,50,.25), transparent 60%),
+                radial-gradient(900px 600px at 110% 10%, rgba(201,191,74,.12), transparent 55%),
+                var(--bg);
+    color: var(--text);
+  }
 
-    .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)),
-                  var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: var(--shadow);
-      margin-bottom: 14px;
-      overflow:hidden;
-    }
-    .accentBar{
-      height:4px;border-radius:999px;
-      background: linear-gradient(90deg, var(--green), var(--yellow));
-      margin:-16px -16px 14px -16px;
-      opacity:.95;
-    }
-    .card h3{
-      margin:0 0 10px;font-size:13px;
-      text-transform:uppercase;letter-spacing:.10em;
-      color:#cfd5df;
-    }
-    .cardHeader{
-      display:flex;align-items:center;justify-content:space-between;
-      gap:10px;flex-wrap:wrap;margin-bottom:10px;
-    }
+  /* TOP */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:14px;flex-wrap:wrap;margin-bottom:14px;
+  }
+  .title{
+    display:flex;align-items:center;gap:12px;margin:0;
+    font-size:22px;font-weight:900;letter-spacing:.2px;
+  }
+  .brandDot{
+    width:14px;height:14px;border-radius:999px;
+    background: var(--green);
+    box-shadow: inset 0 0 0 3px rgba(201,191,74,.95);
+  }
+  .subpill{
+    display:inline-flex;align-items:center;gap:10px;
+    border:1px solid var(--border);
+    padding:8px 12px;border-radius:999px;
+    background: rgba(20,21,24,.75);
+    font-size:12px;color: var(--muted);
+    box-shadow: var(--shadow2);
+    backdrop-filter: blur(6px);
+  }
+  .subpill b{color: var(--green)}
 
-    .row{
-      display:flex;gap:10px;flex-wrap:wrap;align-items:end;
-    }
-    label{
-      font-size:12px;color:#cfd5df;display:block;margin-bottom:6px;font-weight:800;
-    }
+  /* CARDS */
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)),
+                var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 14px;
+    overflow:hidden;
+  }
+  .accentBar{
+    height:4px;border-radius:999px;
+    background: linear-gradient(90deg, var(--green), var(--yellow));
+    margin:-16px -16px 14px -16px;
+    opacity:.95;
+  }
+  .card h3{
+    margin:0 0 10px;font-size:13px;
+    text-transform:uppercase;letter-spacing:.10em;
+    color:#cfd5df;
+  }
+  .cardHeader{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:10px;flex-wrap:wrap;margin-bottom:10px;
+  }
 
-    input,select{
-      padding:10px 12px;
-      border:1px solid var(--border);
-      border-radius:14px;
-      font-size:14px;
-      min-width:160px;
-      background: rgba(16,17,20,.9);
-      color: var(--text);
-      outline:none;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
-    }
-    input::placeholder{color: rgba(231,233,238,.45)}
-    input:focus,select:focus{
-      border-color: rgba(201,191,74,.35);
-      box-shadow: var(--focus);
-    }
-    input[type="date"]{min-width:170px;color-scheme:dark;}
+  .row{
+    display:flex;gap:10px;flex-wrap:wrap;align-items:end;
+  }
+  label{
+    font-size:12px;color:#cfd5df;display:block;margin-bottom:6px;font-weight:800;
+  }
 
-    button{
-      padding:10px 14px;
-      border:1px solid var(--border);
-      background: rgba(20,21,24,.9);
-      color: var(--text);
-      border-radius:14px;
-      cursor:pointer;
-      transition: transform .12s ease, filter .12s ease, background .12s ease;
-      font-weight:900;
-      box-shadow: var(--shadow2);
-    }
-    button:hover{transform: translateY(-1px)}
-    button.primary{
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.10)),
-                  var(--green);
-      border-color: rgba(58,95,50,.9);
-      color:#f2f6ef;
-    }
-    button.primary:hover{filter:brightness(1.03)}
-    button.secondary{
-      border-color: var(--border);
-      background: rgba(20,21,24,.85);
-      color:#d8dde6;
-    }
-    button.secondary:hover{filter:brightness(1.04)}
-    button.danger{
-      color:#ffb4b4;
-      border-color: rgba(255,102,102,.28);
-      background: rgba(60,16,16,.35);
-    }
-    button.small{
-      padding:7px 10px;border-radius:12px;font-size:12px;
-      box-shadow:none;font-weight:900;
-    }
-    button[disabled]{opacity:.6;cursor:not-allowed;transform:none}
+  /* INPUTS */
+  input,select{
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    font-size:14px;
+    min-width:160px;
+    background: rgba(16,17,20,.9);
+    color: var(--text);
+    outline:none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  input::placeholder{color: rgba(231,233,238,.45)}
+  input:focus,select:focus{
+    border-color: rgba(201,191,74,.35);
+    box-shadow: var(--focus);
+  }
+  input[type="date"]{min-width:170px;color-scheme:dark;} /* para datepicker dark */
 
-    .muted{color:var(--muted);font-size:12px;margin-top:8px}
-    .toast{
-      margin-top:10px;font-size:13px;color: var(--yellow-2);
-      display:none;font-weight:900;
-    }
-    .toast.err{color:#ff8f8f}
+  /* BUTTONS */
+  button{
+    padding:10px 14px;
+    border:1px solid var(--border);
+    background: rgba(20,21,24,.9);
+    color: var(--text);
+    border-radius:14px;
+    cursor:pointer;
+    transition: transform .12s ease, filter .12s ease, background .12s ease;
+    font-weight:900;
+    box-shadow: var(--shadow2);
+  }
+  button:hover{transform: translateY(-1px)}
+  button.primary{
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.10)),
+                var(--green);
+    border-color: rgba(58,95,50,.9);
+    color:#f2f6ef;
+  }
+  button.primary:hover{filter:brightness(1.03)}
+  button.secondary{
+    border-color: var(--border);
+    background: rgba(20,21,24,.85);
+    color:#d8dde6;
+  }
+  button.secondary:hover{filter:brightness(1.04)}
+  button.danger{
+    color:#ffb4b4;
+    border-color: rgba(255,102,102,.28);
+    background: rgba(60,16,16,.35);
+  }
+  button.small{
+    padding:7px 10px;border-radius:12px;font-size:12px;
+    box-shadow:none;font-weight:900;
+  }
+  button[disabled]{opacity:.6;cursor:not-allowed;transform:none}
 
-    table{
-      width:100%;
-      border-collapse:separate;
-      border-spacing:0;
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015)),
-                  var(--panel);
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      overflow:hidden;
-      box-shadow: var(--shadow);
-    }
-    thead th{
-      position:sticky;top:0;z-index:2;
-      background: rgba(20,21,24,.92);
-      text-align:center;
-    }
-    th,td{
-      border-bottom:1px solid rgba(255,255,255,.06);
-      padding:10px;
-      font-size:14px;
-      vertical-align:top;
-      white-space:nowrap;
-      text-align:center;
-      color: var(--text);
-    }
-    th{
-      font-size:12px;letter-spacing:.10em;text-transform:uppercase;
-      color:#cfd5df;position:relative;
-    }
-    th::after{
-      content:"";
-      position:absolute;left:0;bottom:0;width:100%;height:3px;
-      background: linear-gradient(90deg, var(--green), var(--yellow));
-      opacity:.95;
-    }
-    tbody tr:nth-child(odd){background: rgba(255,255,255,.015)}
-    tbody tr:hover{background: rgba(58,95,50,.14)}
+  .muted{color:var(--muted);font-size:12px;margin-top:8px}
+  .toast{
+    margin-top:10px;font-size:13px;color: var(--yellow-2);
+    display:none;font-weight:900;
+  }
+  .toast.err{color:#ff8f8f}
 
-    .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  /* TABLE */
+  table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015)),
+                var(--panel);
+    border:1px solid var(--border);
+    border-radius: var(--radius);
+    overflow:hidden;
+    box-shadow: var(--shadow);
+  }
+  thead th{
+    position:sticky;top:0;z-index:2;
+    background: rgba(20,21,24,.92);
+    text-align:center;
+  }
+  th,td{
+    border-bottom:1px solid rgba(255,255,255,.06);
+    padding:10px;
+    font-size:14px;
+    vertical-align:top;
+    white-space:nowrap;
+    text-align:center;
+    color: var(--text);
+  }
+  th{
+    font-size:12px;letter-spacing:.10em;text-transform:uppercase;
+    color:#cfd5df;position:relative;
+  }
+  th::after{
+    content:"";
+    position:absolute;left:0;bottom:0;width:100%;height:3px;
+    background: linear-gradient(90deg, var(--green), var(--yellow));
+    opacity:.95;
+  }
+  tbody tr:nth-child(odd){background: rgba(255,255,255,.015)}
+  tbody tr:hover{background: rgba(58,95,50,.14)}
 
-    .cell-input{
-      min-width:120px;
-      padding:7px 10px;border-radius:12px;
-      border:1px solid var(--border);
-      background: rgba(16,17,20,.92);
-      color: var(--text);
-      text-align:center;
-    }
+  .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 
-    .w220{min-width:220px}
-    .w200{min-width:200px}
-    .w160{min-width:160px}
-    .w140{min-width:140px}
-    .w110{min-width:110px}
+  .cell-input{
+    min-width:120px;
+    padding:7px 10px;border-radius:12px;
+    border:1px solid var(--border);
+    background: rgba(16,17,20,.92);
+    color: var(--text);
+    text-align:center;
+  }
 
-    .footer{
-      position:fixed;left:16px;bottom:12px;font-size:12px;
-      color: var(--text);
-      background: rgba(20,21,24,.75);
-      border:1px solid var(--border);
-      border-left:7px solid var(--green);
-      padding:9px 12px;border-radius:14px;
-      box-shadow: var(--shadow2);
-      backdrop-filter: blur(6px);
-    }
-    .footer b{color: var(--green)}
+  /* widths */
+  .w220{min-width:220px}
+  .w200{min-width:200px}
+  .w160{min-width:160px}
+  .w140{min-width:140px}
+  .w110{min-width:110px}
 
-    select{
-      appearance:none;
-      background-image:
-        linear-gradient(45deg, transparent 50%, rgba(231,233,238,.65) 50%),
-        linear-gradient(135deg, rgba(231,233,238,.65) 50%, transparent 50%),
-        linear-gradient(to right, transparent, transparent);
-      background-position:
-        calc(100% - 18px) calc(50% - 3px),
-        calc(100% - 13px) calc(50% - 3px),
-        calc(100% - 2.2rem) 0.45rem;
-      background-size:5px 5px, 5px 5px, 1px 1.8rem;
-      background-repeat:no-repeat;
-      padding-right:34px;
-    }
+  /* FOOTER */
+  .footer{
+    position:fixed;left:16px;bottom:12px;font-size:12px;
+    color: var(--text);
+    background: rgba(20,21,24,.75);
+    border:1px solid var(--border);
+    border-left:7px solid var(--green);
+    padding:9px 12px;border-radius:14px;
+    box-shadow: var(--shadow2);
+    backdrop-filter: blur(6px);
+  }
+  .footer b{color: var(--green)}
 
-    /* ===== LOGIN OVERLAY ===== */
-    .overlay{
-      position:fixed; inset:0;
-      display:none; align-items:center; justify-content:center;
-      background: rgba(0,0,0,.65);
-      backdrop-filter: blur(8px);
-      z-index: 9999;
-    }
-    .loginCard{
-      width: 380px; max-width: 92vw;
-      border-radius: 18px;
-      border: 1px solid var(--border-2);
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)), var(--panel);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    .loginCard .head{
-      padding:16px;
-    }
-    .loginCard h2{
-      margin:0;
-      font-size:14px;
-      letter-spacing:.10em;
-      text-transform:uppercase;
-      color:#cfd5df;
-      font-weight:900;
-    }
-    .loginCard .body{
-      padding:0 16px 16px;
-      display:grid; gap:10px;
-    }
-    .loginMsg{font-size:12px;color:var(--muted);font-weight:700}
-    .loginRow{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end}
-    .rightTools{display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end}
-    .userTag{
-      font-size:12px;
-      color: var(--muted);
-      border:1px solid var(--border);
-      padding:8px 12px;
-      border-radius:999px;
-      background: rgba(20,21,24,.75);
-      box-shadow: var(--shadow2);
-      backdrop-filter: blur(6px);
-      display:none;
-    }
-  </style>
+  /* Extra: mejora sutil de los select (flecha) en dark */
+  select{
+    appearance:none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, rgba(231,233,238,.65) 50%),
+      linear-gradient(135deg, rgba(231,233,238,.65) 50%, transparent 50%),
+      linear-gradient(to right, transparent, transparent);
+    background-position:
+      calc(100% - 18px) calc(50% - 3px),
+      calc(100% - 13px) calc(50% - 3px),
+      calc(100% - 2.2rem) 0.45rem;
+    background-size:5px 5px, 5px 5px, 1px 1.8rem;
+    background-repeat:no-repeat;
+    padding-right:34px;
+  }
+</style>
+
 </head>
 
 <body>
 
-  <!-- LOGIN OVERLAY -->
-  <div id="loginOverlay" class="overlay">
-    <div class="loginCard">
-      <div class="accentBar"></div>
-      <div class="head">
-        <h2>Iniciar sesión</h2>
-      </div>
-      <div class="body">
-        <input id="loginEmail" placeholder="Email" autocomplete="username" />
-        <input id="loginPass" type="password" placeholder="Contraseña" autocomplete="current-password" />
-        <div class="loginRow">
-          <button id="loginBtn" class="primary" type="button">Entrar</button>
-        </div>
-        <div id="loginMsg" class="loginMsg"></div>
-      </div>
-    </div>
-  </div>
-
   <div class="topbar">
     <h1 class="title"><span class="brandDot"></span> Carga de datos</h1>
-
-    <div class="rightTools">
-      <div id="userTag" class="userTag"></div>
-      <button id="logoutBtn" class="secondary" type="button" style="display:none">Salir</button>
-      <div class="subpill">Sistema <b>Interagrovial</b> · verde/amarillo</div>
-    </div>
+    <div class="subpill">Sistema <b>Interagrovial</b> · verde/amarillo</div>
   </div>
 
   <!-- FILTROS + EXPORT -->
@@ -459,24 +401,22 @@
       serverTimestamp, query, orderBy, onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-    // ✅ AUTH
-    import {
-      getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
-    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+    // ✅ PEGÁ ACÁ TU CONFIG REAL (la que ya te funciona)
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyDIgNEkvCng0XrqGvDAuutCBSglodO3644",
+  authDomain: "carpetas-17846.firebaseapp.com",
+  projectId: "carpetas-17846",
+  storageBucket: "carpetas-17846.firebasestorage.app",
+  messagingSenderId: "513234224676",
+  appId: "1:513234224676:web:0461b1fbfcea43deb5bab1",
+  measurementId: "G-NRPLGK20YK"
+};
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDIgNEkvCng0XrqGvDAuutCBSglodO3644",
-      authDomain: "carpetas-17846.firebaseapp.com",
-      projectId: "carpetas-17846",
-      storageBucket: "carpetas-17846.firebasestorage.app",
-      messagingSenderId: "513234224676",
-      appId: "1:513234224676:web:0461b1fbfcea43deb5bab1",
-      measurementId: "G-NRPLGK20YK"
-    };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth(app);
 
     const $ = (id) => document.getElementById(id);
     const tbody = $("tbody");
@@ -484,14 +424,6 @@
     const toastEl = $("toast");
     const addBtn = $("addBtn");
 
-    // login ui
-    const loginOverlay = $("loginOverlay");
-    const loginBtn = $("loginBtn");
-    const loginMsg = $("loginMsg");
-    const logoutBtn = $("logoutBtn");
-    const userTag = $("userTag");
-
-    let unsub = null;           // unsubscribe snapshot
     let editingRowId = null;
     let cache = [];
     let view = [];
@@ -526,70 +458,6 @@
       const timeout = new Promise((_, rej) => { t = setTimeout(() => rej(new Error(timeoutMsg)), ms); });
       return Promise.race([promise, timeout]).finally(() => clearTimeout(t));
     }
-
-    // ===== AUTH HANDLERS =====
-    async function doLogin(){
-      const email = $("loginEmail").value.trim();
-      const pass  = $("loginPass").value;
-      loginMsg.textContent = "Ingresando...";
-      loginBtn.disabled = true;
-
-      try{
-        await signInWithEmailAndPassword(auth, email, pass);
-        loginMsg.textContent = "";
-      }catch(e){
-        console.error(e);
-        loginMsg.textContent = (e.code || "error") + " · " + (e.message || "");
-      }finally{
-        loginBtn.disabled = false;
-      }
-    }
-
-    loginBtn.addEventListener("click", doLogin);
-    $("loginPass").addEventListener("keydown", (e)=>{ if(e.key==="Enter") doLogin(); });
-    $("loginEmail").addEventListener("keydown", (e)=>{ if(e.key==="Enter") doLogin(); });
-
-    logoutBtn.addEventListener("click", async ()=>{
-      await signOut(auth);
-    });
-
-    function startSnapshot(){
-      // Listener tiempo real (solo cuando hay usuario)
-      const qSnap = query(collection(db, "rows"), orderBy("createdAt", "desc"));
-      return onSnapshot(qSnap, (snap) => {
-        cache = [];
-        snap.forEach(d => cache.push({ id: d.id, data: d.data() }));
-        rebuildDivisionOptions();
-        applyFilters();
-      }, (err) => {
-        console.error(err);
-        showToast("No se pudo leer Firestore: " + (err.code || ""), true);
-      });
-    }
-
-    onAuthStateChanged(auth, (user)=>{
-      if(!user){
-        // corta listener y limpia
-        if(unsub){ unsub(); unsub = null; }
-        cache = []; view = []; editingRowId = null;
-        tbody.innerHTML = "";
-        $("fDivision").innerHTML = `<option value="">(Todas)</option>`;
-
-        userTag.style.display = "none";
-        logoutBtn.style.display = "none";
-        loginOverlay.style.display = "flex";
-        showToast("Iniciá sesión para acceder", true);
-        return;
-      }
-
-      // logueado
-      loginOverlay.style.display = "none";
-      userTag.textContent = user.email || "Usuario";
-      userTag.style.display = "inline-flex";
-      logoutBtn.style.display = "inline-flex";
-
-      if(!unsub) unsub = startSnapshot();
-    });
 
     // ---- Filtros ----
     function norm(s){ return (s ?? "").toString().trim().toLowerCase(); }
@@ -743,7 +611,7 @@
         console.error(e);
         msgEl.textContent = "";
         showToast("No se pudo guardar", true);
-        alert("No se pudo guardar: " + (e.code || "") + " " + (e.message || ""));
+        alert("No se pudo guardar. Revisá reglas/permisos o la red.");
       } finally {
         addBtn.disabled = false;
       }
@@ -826,6 +694,18 @@
       tbody.innerHTML = dataToDraw.map(x => renderRow(x.id, x.data)).join("");
     }
 
+    // Listener tiempo real
+    const qSnap = query(collection(db, "rows"), orderBy("createdAt", "desc"));
+    onSnapshot(qSnap, (snap) => {
+      cache = [];
+      snap.forEach(d => cache.push({ id: d.id, data: d.data() }));
+      rebuildDivisionOptions();
+      applyFilters();
+    }, (err) => {
+      console.error(err);
+      showToast("No se pudo leer Firestore", true);
+    });
+
     // Acciones tabla
     tbody.addEventListener("click", async (e) => {
       const btn = e.target.closest("button[data-action]");
@@ -862,7 +742,7 @@
         } catch (err) {
           console.error(err);
           showToast("No se pudo modificar", true);
-          alert("No se pudo modificar: " + (err.code || "") + " " + (err.message || ""));
+          alert("No se pudo modificar. Revisá reglas/permisos o red.");
         } finally {
           btn.disabled = false;
         }
@@ -879,7 +759,7 @@
         } catch (err) {
           console.error(err);
           showToast("No se pudo eliminar", true);
-          alert("No se pudo eliminar: " + (err.code || "") + " " + (err.message || ""));
+          alert("No se pudo eliminar. Revisá reglas/permisos o red.");
         } finally {
           btn.disabled = false;
         }
@@ -888,3 +768,6 @@
   </script>
 </body>
 </html>
+
+
+
