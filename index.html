@@ -255,6 +255,13 @@
     font-weight: 900;
   }
   a.link:hover{ text-decoration: underline; }
+
+  .linksList{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    align-items:center;
+  }
 </style>
 
 </head>
@@ -374,7 +381,7 @@
         </select>
       </div>
 
-      <!-- ✅ NUEVOS CAMPOS -->
+      <!-- ✅ CAMPOS -->
       <div>
         <label>Día Doc Factura adjunta</label>
         <input id="dia_doc_factura" type="date" />
@@ -385,9 +392,10 @@
         <input id="cierre_carpeta" type="date" />
       </div>
 
+      <!-- ✅ AHORA MULTI-ARCHIVO -->
       <div>
-        <label>Adjuntar (PDF/Word)</label>
-        <input id="adjunto" class="w260" type="file"
+        <label>Adjuntar (PDF/Word) - varios</label>
+        <input id="adjunto" class="w260" type="file" multiple
           accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
       </div>
 
@@ -411,10 +419,9 @@
         <th>Orden compra</th>
         <th>Condiciones</th>
         <th>WIS</th>
-        <!-- ✅ NUEVAS COLUMNAS -->
         <th>Día Doc Factura</th>
         <th>Cierre carpeta</th>
-        <th>Adjunto</th>
+        <th>Adjuntos</th>
         <th>Acciones</th>
       </tr>
     </thead>
@@ -498,12 +505,21 @@
       return (name || "archivo").replace(/[^\w.\-]+/g, "_");
     }
 
-    async function uploadAttachment(file, rowId){
+    async function uploadOneAttachment(file, rowId){
       const path = `attachments/rows/${rowId}/${Date.now()}_${safeFileName(file.name)}`;
       const fileRef = sRef(storage, path);
       await uploadBytes(fileRef, file);
       const url = await getDownloadURL(fileRef);
-      return { attachmentUrl: url, attachmentPath: path, attachmentName: file.name };
+      return { name: file.name, url, path };
+    }
+
+    async function uploadManyAttachments(files, rowId){
+      const list = [];
+      for (const f of files) {
+        const a = await uploadOneAttachment(f, rowId);
+        list.push(a);
+      }
+      return list;
     }
 
     async function tryDeleteAttachment(path){
@@ -515,16 +531,35 @@
       }
     }
 
+    async function tryDeleteAllAttachments(attachments){
+      if (!Array.isArray(attachments)) return;
+      for (const a of attachments) {
+        await tryDeleteAttachment(a?.path);
+      }
+    }
+
+    // Compat: si hay viejo attachmentUrl/Name/Path, lo convierto a attachments[]
+    function normalizeAttachments(r){
+      if (Array.isArray(r.attachments)) return r.attachments;
+      if (r.attachmentUrl) {
+        return [{ name: r.attachmentName || "Adjunto", url: r.attachmentUrl, path: r.attachmentPath || "" }];
+      }
+      return [];
+    }
+
     // ---- Filtros ----
     function norm(s){ return (s ?? "").toString().trim().toLowerCase(); }
 
     function matchesText(row, q){
       if (!q) return true;
+      const atts = normalizeAttachments(row);
+      const attNames = atts.map(a => a?.name).join(" | ");
+
       const hay = [
         row.factura, row.division, row.transporte, row.carpeta,
         row.fecha_estimada, row.oc, row.cond, row.wis,
         row.dia_doc_factura, row.cierre_carpeta,
-        row.attachmentName
+        attNames
       ].map(norm).join(" | ");
       return hay.includes(q);
     }
@@ -594,13 +629,19 @@
       const headers = [
         "Fecha carga","Factura","División","Transporte","Carpeta",
         "Fecha estimada","Orden compra","Condiciones","WIS",
-        "Día Doc Factura","Cierre carpeta","Adjunto Nombre","Adjunto URL"
+        "Día Doc Factura","Cierre carpeta",
+        "Adjuntos Nombres","Adjuntos URLs"
       ];
       const lines = [headers.map(csvEscape).join(",")];
 
       rows.forEach(x=>{
         const r = x.data;
         const dt = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : "";
+
+        const atts = normalizeAttachments(r);
+        const names = atts.map(a => a?.name || "").join(" | ");
+        const urls  = atts.map(a => a?.url  || "").join(" | ");
+
         const line = [
           dt,
           r.factura || "",
@@ -613,8 +654,8 @@
           r.wis || "",
           r.dia_doc_factura || "",
           r.cierre_carpeta || "",
-          r.attachmentName || "",
-          r.attachmentUrl || ""
+          names,
+          urls
         ].map(csvEscape).join(",");
         lines.push(line);
       });
@@ -653,11 +694,8 @@
         oc: $("oc").value.trim(),
         cond: $("cond").value,
         wis: $("wis").value,
-
-        // ✅ nuevos campos
         dia_doc_factura: $("dia_doc_factura").value || "",
         cierre_carpeta: $("cierre_carpeta").value || "",
-
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
@@ -675,12 +713,15 @@
         // 1) creo el doc (necesito id)
         const docRef = await withTimeout(addDoc(collection(db, "rows"), data), 15000);
 
-        // 2) subo adjunto si hay
-        const file = $("adjunto").files?.[0];
-        if (file) {
-          msgEl.textContent = "Subiendo adjunto...";
-          const up = await withTimeout(uploadAttachment(file, docRef.id), 30000);
-          await withTimeout(updateDoc(doc(db, "rows", docRef.id), { ...up, updatedAt: serverTimestamp() }), 15000);
+        // 2) subo adjuntos si hay (MULTIPLE)
+        const files = Array.from($("adjunto").files || []);
+        if (files.length) {
+          msgEl.textContent = `Subiendo adjuntos (${files.length})...`;
+          const uploaded = await withTimeout(uploadManyAttachments(files, docRef.id), 120000);
+          await withTimeout(updateDoc(doc(db, "rows", docRef.id), {
+            attachments: uploaded,
+            updatedAt: serverTimestamp()
+          }), 15000);
           $("adjunto").value = "";
         }
 
@@ -697,14 +738,22 @@
       }
     });
 
+    function renderAttachmentsCell(r){
+      const atts = normalizeAttachments(r);
+      if (!atts.length) return "-";
+      return `<div class="linksList">${
+        atts.map(a =>
+          `<a class="link" href="${escapeHtml(a.url)}" target="_blank" rel="noopener noreferrer">
+            Abrir: ${escapeHtml(a.name)}
+          </a>`
+        ).join("")
+      }</div>`;
+    }
+
     function renderRow(id, r) {
       const dt = r.createdAt?.toDate ? r.createdAt.toDate() : null;
       const dtTxt = dt ? dt.toLocaleString() : "";
       const isEditing = (editingRowId === id);
-
-      const adjCell = r.attachmentUrl
-        ? `<a class="link" href="${escapeHtml(r.attachmentUrl)}" target="_blank" rel="noopener noreferrer">Abrir/Descargar</a>`
-        : "-";
 
       if (!isEditing) {
         return `
@@ -718,11 +767,9 @@
             <td>${escapeHtml(r.oc)}</td>
             <td>${escapeHtml(r.cond)}</td>
             <td>${escapeHtml(r.wis)}</td>
-
             <td>${escapeHtml(r.dia_doc_factura)}</td>
             <td>${escapeHtml(r.cierre_carpeta)}</td>
-            <td>${adjCell}</td>
-
+            <td>${renderAttachmentsCell(r)}</td>
             <td>
               <div class="actions">
                 <button class="small secondary" data-action="edit">Editar</button>
@@ -741,12 +788,18 @@
       const oc = escapeHtml(r.oc || "");
       const cond = r.cond || "SI";
       const wis = r.wis || "SI";
-
       const dia_doc_factura = escapeHtml(r.dia_doc_factura || "");
       const cierre_carpeta = escapeHtml(r.cierre_carpeta || "");
 
-      const verActual = r.attachmentUrl
-        ? `<div style="margin-top:6px"><a class="link" href="${escapeHtml(r.attachmentUrl)}" target="_blank" rel="noopener noreferrer">Ver actual</a></div>`
+      const actuales = normalizeAttachments(r);
+      const verActual = actuales.length
+        ? `<div class="linksList" style="margin-top:6px">${
+            actuales.map(a =>
+              `<a class="link" href="${escapeHtml(a.url)}" target="_blank" rel="noopener noreferrer">
+                Actual: ${escapeHtml(a.name)}
+              </a>`
+            ).join("")
+          }</div>`
         : "";
 
       return `
@@ -778,9 +831,10 @@
           <td><input class="cell-input w160" type="date" data-field="cierre_carpeta" value="${cierre_carpeta}"></td>
 
           <td>
-            <input class="cell-input w260" type="file" data-file="attachment"
+            <input class="cell-input w260" type="file" multiple data-file="attachments"
               accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
             ${verActual}
+            <div class="muted" style="margin-top:6px">*Los nuevos archivos se agregan (no reemplazan).</div>
           </td>
 
           <td>
@@ -842,16 +896,18 @@
         try {
           btn.disabled = true;
 
-          // Si seleccionaron archivo nuevo, lo subimos y reemplazamos
-          const fileInput = tr.querySelector('[data-file="attachment"]');
-          const newFile = fileInput?.files?.[0];
+          // adjuntos nuevos (MULTIPLE) => se agregan
+          const fileInput = tr.querySelector('[data-file="attachments"]');
+          const newFiles = Array.from(fileInput?.files || []);
+          const old = cache.find(x => x.id === id)?.data || {};
+          const currentAtts = normalizeAttachments(old);
 
-          if (newFile) {
-            const old = cache.find(x => x.id === id)?.data;
-            await tryDeleteAttachment(old?.attachmentPath);
-
-            const up = await withTimeout(uploadAttachment(newFile, id), 30000);
-            Object.assign(updated, up);
+          if (newFiles.length) {
+            const uploaded = await withTimeout(uploadManyAttachments(newFiles, id), 120000);
+            updated.attachments = currentAtts.concat(uploaded);
+          } else {
+            // si no seleccionó nuevos, mantengo los actuales (si existen)
+            if (currentAtts.length) updated.attachments = currentAtts;
           }
 
           await withTimeout(updateDoc(doc(db, "rows", id), { ...updated, updatedAt: serverTimestamp() }), 15000);
@@ -874,9 +930,10 @@
         try {
           btn.disabled = true;
 
-          // borrar adjunto si existía
-          const row = cache.find(x => x.id === id)?.data;
-          await tryDeleteAttachment(row?.attachmentPath);
+          // borrar TODOS los adjuntos
+          const row = cache.find(x => x.id === id)?.data || {};
+          const atts = normalizeAttachments(row);
+          await tryDeleteAllAttachments(atts);
 
           await withTimeout(deleteDoc(doc(db, "rows", id)), 15000);
           if (editingRowId === id) editingRowId = null;
@@ -893,4 +950,3 @@
   </script>
 </body>
 </html>
-
