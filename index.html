@@ -32,97 +32,37 @@
       color: var(--text);
     }
 
-    .topbar{
-      display:flex;align-items:center;justify-content:space-between;
-      gap:14px;flex-wrap:wrap;margin-bottom:14px;
-    }
-    .title{
-      display:flex;align-items:center;gap:12px;margin:0;
-      font-size:22px;font-weight:900;letter-spacing:.2px;
-    }
-    .brandDot{
-      width:14px;height:14px;border-radius:999px;
-      background: var(--jd-green);
-      box-shadow: inset 0 0 0 3px var(--jd-yellow);
-    }
-    .subpill{
-      display:inline-flex;align-items:center;gap:8px;
-      border:1px solid var(--border);
-      padding:8px 12px;border-radius:999px;
-      background: rgba(255,255,255,.04);
-      font-size:12px;color:#cfd1da;
-      box-shadow: var(--shadow2);
-    }
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px;}
+    .title{display:flex;align-items:center;gap:12px;margin:0;font-size:22px;font-weight:900;letter-spacing:.2px;}
+    .brandDot{width:14px;height:14px;border-radius:999px;background:var(--jd-green);box-shadow: inset 0 0 0 3px var(--jd-yellow);}
+    .subpill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.04);font-size:12px;color:#cfd1da;box-shadow:var(--shadow2);}
     .subpill b{color:var(--jd-green)}
 
-    .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: var(--shadow);
-      margin-bottom: 14px;
-      overflow:hidden;
-    }
-    .accentBar{
-      height:5px;border-radius:999px;
-      background: linear-gradient(90deg, rgba(54,124,43,.95), rgba(255,222,0,.75));
-      margin:-16px -16px 14px -16px;
-      filter: saturate(1.05);
-    }
-    .cardHeader{
-      display:flex;align-items:center;justify-content:space-between;
-      gap:10px;flex-wrap:wrap;margin-bottom:10px;
-    }
-    .card h3{
-      margin:0 0 10px;font-size:13px;
-      text-transform:uppercase;letter-spacing:.10em;
-      color:#d6d7df;
-    }
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden;}
+    .accentBar{height:5px;border-radius:999px;background:linear-gradient(90deg, rgba(54,124,43,.95), rgba(255,222,0,.75));margin:-16px -16px 14px -16px;}
+    .cardHeader{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+    .card h3{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.10em;color:#d6d7df;}
 
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
     label{font-size:12px;color:#cfd1da;display:block;margin-bottom:6px;font-weight:800}
 
     input,select{
-      padding:10px 12px;
-      border:1px solid var(--border-strong);
-      border-radius:14px;
-      font-size:14px;
-      min-width:160px;
-      background: rgba(255,255,255,.03);
-      color: var(--text);
-      outline:none;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+      padding:10px 12px;border:1px solid var(--border-strong);border-radius:14px;font-size:14px;min-width:160px;
+      background:rgba(255,255,255,.03);color:var(--text);outline:none;box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
     }
     input::placeholder{color:#8c90a3}
-    input:focus,select:focus{
-      border-color: rgba(54,124,43,.85);
-      box-shadow: 0 0 0 4px rgba(54,124,43,.20);
-    }
+    input:focus,select:focus{border-color:rgba(54,124,43,.85);box-shadow:0 0 0 4px rgba(54,124,43,.20);}
     input[type="date"]{min-width:170px;color-scheme:dark}
+    input[type="file"]{min-width:260px;padding:9px 12px}
 
     button{
-      padding:10px 12px;border:1px solid var(--border-strong);
-      background: rgba(255,255,255,.04);
-      border-radius:14px;cursor:pointer;
-      transition:.12s ease;font-weight:900;color:#e7e7ea;
-      box-shadow: var(--shadow2);
+      padding:10px 12px;border:1px solid var(--border-strong);background:rgba(255,255,255,.04);
+      border-radius:14px;cursor:pointer;transition:.12s ease;font-weight:900;color:#e7e7ea;box-shadow:var(--shadow2);
     }
     button:hover{transform: translateY(-1px)}
-    button.primary{
-      background: rgba(54,124,43,.85);
-      border-color: rgba(54,124,43,.85);
-      color:#fff;
-      box-shadow: 0 12px 22px rgba(54,124,43,.18);
-    }
-    button.secondary{
-      border-color: rgba(54,124,43,.55);
-      color:#d9f1d3;
-      background: rgba(54,124,43,.12);
-    }
-    button.danger{
-      color:#ffd7dc;border-color:#5a2731;background: rgba(176,0,32,.16);
-    }
+    button.primary{background:rgba(54,124,43,.85);border-color:rgba(54,124,43,.85);color:#fff;box-shadow:0 12px 22px rgba(54,124,43,.18);}
+    button.secondary{border-color:rgba(54,124,43,.55);color:#d9f1d3;background:rgba(54,124,43,.12);}
+    button.danger{color:#ffd7dc;border-color:#5a2731;background:rgba(176,0,32,.16);}
     button.small{padding:7px 10px;border-radius:12px;font-size:12px;box-shadow:none;font-weight:900}
     button[disabled]{opacity:.6;cursor:not-allowed;transform:none}
 
@@ -131,75 +71,49 @@
     .toast.err{color:#ff8b97}
 
     table{
-      width:100%;
-      border-collapse:separate;border-spacing:0;
-      background: rgba(255,255,255,.03);
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      overflow:hidden;
-      box-shadow: var(--shadow);
+      width:100%;border-collapse:separate;border-spacing:0;background:rgba(255,255,255,.03);
+      border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);
     }
-    thead th{
-      background: rgba(255,255,255,.02);
-      position:sticky;top:0;z-index:2;
-      text-align:center;
-    }
-    th,td{
-      border-bottom:1px solid rgba(255,255,255,.06);
-      padding:10px;font-size:14px;vertical-align:top;
-      white-space:nowrap;text-align:center;color:#e7e7ea;
-    }
-    th{
-      font-size:12px;letter-spacing:.06em;text-transform:uppercase;
-      color:#cfd1da;position:relative;
-    }
-    th::after{
-      content:"";
-      position:absolute;left:0;bottom:0;width:100%;height:3px;
-      background: linear-gradient(90deg, rgba(54,124,43,.95), rgba(255,222,0,.75));
-      opacity:.95;
-    }
-    tbody tr:nth-child(odd){background: rgba(255,255,255,.01)}
-    tbody tr:hover{background: rgba(54,124,43,.10)}
+    thead th{background:rgba(255,255,255,.02);position:sticky;top:0;z-index:2;text-align:center;}
+    th,td{border-bottom:1px solid rgba(255,255,255,.06);padding:10px;font-size:14px;vertical-align:top;white-space:nowrap;text-align:center;color:#e7e7ea;}
+    th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#cfd1da;position:relative;}
+    th::after{content:"";position:absolute;left:0;bottom:0;width:100%;height:3px;background:linear-gradient(90deg, rgba(54,124,43,.95), rgba(255,222,0,.75));opacity:.95;}
+    tbody tr:nth-child(odd){background:rgba(255,255,255,.01)}
+    tbody tr:hover{background:rgba(54,124,43,.10)}
 
     .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-    .cell-input{
-      min-width:120px;padding:7px 10px;border-radius:12px;
-      border:1px solid var(--border-strong);
-      background: rgba(255,255,255,.03);
-      color: var(--text);
-      text-align:center;
-    }
 
+    .cell-input{
+      min-width:120px;padding:7px 10px;border-radius:12px;border:1px solid var(--border-strong);
+      background:rgba(255,255,255,.03);color:var(--text);text-align:center;
+    }
     .w220{min-width:220px}
     .w200{min-width:200px}
     .w160{min-width:160px}
     .w140{min-width:140px}
     .w110{min-width:110px}
 
+    .attachBox{display:flex;flex-direction:column;gap:6px;align-items:center}
+    .attachList{display:flex;flex-direction:column;gap:6px;align-items:flex-start;max-width:320px}
+    .attachItem{
+      display:flex;align-items:center;gap:8px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(0,0,0,.25);
+      padding:6px 10px;border-radius:12px;
+      max-width:320px;
+    }
+    .attachItem a{
+      color:#d7f7cf;text-decoration:none;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+    .attachMeta{font-size:11px;color:var(--muted)}
+    .attachDel{padding:5px 8px;border-radius:10px}
+
     .footer{
-      position:fixed;left:16px;bottom:12px;font-size:12px;
-      color:#e7e7ea;background: rgba(0,0,0,.45);
-      border:1px solid var(--border);
-      border-left:7px solid var(--jd-green);
-      padding:9px 12px;border-radius:14px;
-      box-shadow: var(--shadow2);
-      backdrop-filter: blur(6px);
+      position:fixed;left:16px;bottom:12px;font-size:12px;color:#e7e7ea;background:rgba(0,0,0,.45);
+      border:1px solid var(--border);border-left:7px solid var(--jd-green);
+      padding:9px 12px;border-radius:14px;box-shadow:var(--shadow2);backdrop-filter:blur(6px);
     }
     .footer b{color:var(--jd-green)}
-
-    /* Adjuntos UI */
-    .attWrap{min-width:320px}
-    .attList{display:flex;flex-direction:column;gap:6px;margin-top:6px}
-    .attItem{
-      display:flex;gap:8px;align-items:center;justify-content:space-between;
-      border:1px solid rgba(255,255,255,.08);
-      background: rgba(255,255,255,.03);
-      padding:8px 10px;border-radius:12px;
-    }
-    .attName{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#d6d7df}
-    .attLinks{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
-    a{color:#d9f1d3}
   </style>
 </head>
 
@@ -271,7 +185,7 @@
       </div>
     </div>
 
-    <div class="muted">Los filtros se aplican automáticamente sobre la tabla. “Descargar Excel” exporta lo filtrado.</div>
+    <div class="muted">Los filtros se aplican automáticamente. La descarga exporta lo filtrado (CSV para Excel).</div>
   </div>
 
   <!-- FORMULARIO AGREGAR -->
@@ -334,11 +248,10 @@
         </select>
       </div>
 
-      <!-- ✅ Adjuntos -->
-      <div class="attWrap">
-        <label>Adjuntos (podés borrar 1 por 1)</label>
+      <div>
+        <label>Adjuntos (pueden ser 1 o más)</label>
         <input id="adjuntos" type="file" multiple />
-        <div id="attPreview" class="attList"></div>
+        <div class="muted">Se suben a Firebase Storage. Luego podés borrar 1 o varios sin borrar la fila.</div>
       </div>
 
       <button id="addBtn" class="primary" type="button">Agregar</button>
@@ -374,14 +287,19 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
     import {
-      getFirestore, collection, addDoc, doc, updateDoc, deleteDoc,
-      serverTimestamp, query, orderBy, onSnapshot
+      getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDoc,
+      serverTimestamp, query, orderBy, onSnapshot, arrayUnion
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+
+    import {
+      getAuth, signInAnonymously, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+
     import {
       getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
 
-    // ✅ PEGAR TU CONFIG REAL (IMPORTANTE: storageBucket real)
+    // ✅ PEGAR TU CONFIG REAL
     const firebaseConfig = {
       apiKey: "PEGAR_TU_API_KEY",
       authDomain: "PEGAR_TU_AUTH_DOMAIN",
@@ -393,6 +311,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
     const storage = getStorage(app);
 
     const $ = (id) => document.getElementById(id);
@@ -404,9 +323,6 @@
     let editingRowId = null;
     let cache = [];
     let view = [];
-
-    // ---- Adjuntos (alta) ----
-    let selectedFiles = []; // Array<File>
 
     function showToast(text, isError=false){
       toastEl.textContent = text;
@@ -432,41 +348,8 @@
       $("cond").value = "SI";
       $("wis").value = "SI";
       $("cierre").value = "SI";
-
-      selectedFiles = [];
       $("adjuntos").value = "";
-      renderAttPreview();
     }
-
-    function renderAttPreview(){
-      const wrap = $("attPreview");
-      if (!selectedFiles.length){
-        wrap.innerHTML = `<div class="muted">Sin adjuntos.</div>`;
-        return;
-      }
-      wrap.innerHTML = selectedFiles.map((f, idx) => `
-        <div class="attItem">
-          <div class="attName">${escapeHtml(f.name)} (${Math.round(f.size/1024)} KB)</div>
-          <button class="small danger" type="button" data-att-remove="${idx}">Quitar</button>
-        </div>
-      `).join("");
-    }
-
-    $("adjuntos").addEventListener("change", (e) => {
-      const incoming = Array.from(e.target.files || []);
-      if (incoming.length) selectedFiles = selectedFiles.concat(incoming);
-      $("adjuntos").value = ""; // permite volver a elegir el mismo archivo
-      renderAttPreview();
-    });
-
-    $("attPreview").addEventListener("click", (e) => {
-      const btn = e.target.closest("button[data-att-remove]");
-      if (!btn) return;
-      const idx = Number(btn.dataset.attRemove);
-      if (Number.isNaN(idx)) return;
-      selectedFiles.splice(idx, 1);
-      renderAttPreview();
-    });
 
     function withTimeout(promise, ms, timeoutMsg="Tiempo de espera agotado") {
       let t;
@@ -474,19 +357,15 @@
       return Promise.race([promise, timeout]).finally(() => clearTimeout(t));
     }
 
-    // ---- Filtros ----
     function norm(s){ return (s ?? "").toString().trim().toLowerCase(); }
-
     function matchesText(row, q){
       if (!q) return true;
-      const atts = (row.attachments || []).map(a => a?.name || "").join(" ");
       const hay = [
         row.factura, row.division, row.transporte, row.carpeta,
-        row.fecha_estimada, row.oc, row.cond, row.wis, row.cierre, atts
+        row.fecha_estimada, row.oc, row.cond, row.wis, row.cierre
       ].map(norm).join(" | ");
       return hay.includes(q);
     }
-
     function inDateRange(row, from, to){
       const d = row.fecha_estimada || "";
       if (!from && !to) return true;
@@ -543,7 +422,7 @@
       applyFilters();
     });
 
-    // ---- Export (CSV -> Excel) ----
+    // ---- Export CSV ----
     function csvEscape(value){
       const s = (value ?? "").toString();
       const mustQuote = /[",\n\r;]/.test(s);
@@ -554,14 +433,13 @@
     function toCsv(rows){
       const headers = [
         "Fecha carga","Factura","División","Transporte","Carpeta",
-        "Fecha estimada","Orden compra","Condiciones","WIS","Cierre carpeta","Adjuntos"
+        "Fecha estimada","Orden compra","Condiciones","WIS","Cierre carpeta","Adjuntos (cant.)"
       ];
       const lines = [headers.map(csvEscape).join(",")];
 
       rows.forEach(x=>{
         const r = x.data;
         const dt = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : "";
-        const atts = (r.attachments || []).map(a => a?.name || "").join(" | ");
         const line = [
           dt,
           r.factura || "",
@@ -573,7 +451,7 @@
           r.cond || "",
           r.wis || "",
           r.cierre || "",
-          atts
+          (r.adjuntos?.length ?? 0).toString()
         ].map(csvEscape).join(",");
         lines.push(line);
       });
@@ -601,46 +479,83 @@
       showToast("Descarga lista (CSV para Excel)");
     });
 
-    // ---- Helpers ----
-    function safeYesNo(v){
-      return (v === "NO") ? "NO" : "SI";
+    // ---- Adjuntos helpers ----
+    function safeFileName(name){
+      return name.replace(/[^\w.\-()\s]/g, "_");
     }
-
     function uid(){
-      return (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`);
+      return Math.random().toString(16).slice(2) + "-" + Date.now().toString(16);
+    }
+    function fmtSize(bytes){
+      if (!bytes && bytes !== 0) return "";
+      const u = ["B","KB","MB","GB"];
+      let i=0, b=bytes;
+      while (b >= 1024 && i < u.length-1){ b/=1024; i++; }
+      return `${b.toFixed(i===0?0:1)} ${u[i]}`;
     }
 
-    async function uploadAttachments(rowId, files){
-      if (!files?.length) return [];
-      const uploaded = [];
+    async function uploadAttachmentsForRow(rowId, fileList){
+      const files = Array.from(fileList || []);
+      if (!files.length) return [];
+
+      const out = [];
       for (const file of files){
-        const path = `rows/${rowId}/${uid()}_${file.name}`;
-        const ref = sRef(storage, path);
-        await withTimeout(uploadBytes(ref, file), 30000, "Timeout subiendo adjunto");
-        const url = await withTimeout(getDownloadURL(ref), 15000, "Timeout obteniendo URL");
-        uploaded.push({ name: file.name, path, url, size: file.size });
+        const clean = safeFileName(file.name);
+        const path = `rows/${rowId}/${uid()}__${clean}`;
+        const r = sRef(storage, path);
+
+        await uploadBytes(r, file);
+        const url = await getDownloadURL(r);
+
+        out.push({
+          name: file.name,
+          path,
+          url,
+          size: file.size,
+          uploadedAt: new Date().toISOString()
+        });
       }
-      return uploaded;
+      return out;
     }
 
-    function renderAttachmentsCell(id, r){
-      const atts = r.attachments || [];
-      if (!atts.length) return `<span class="muted">—</span>`;
+    async function deleteAttachment(rowId, att){
+      // borrar archivo en Storage + sacar del array en Firestore
+      if (!att?.path) throw new Error("Adjunto sin path");
+      await deleteObject(sRef(storage, att.path));
+
+      // recargar doc, filtrar, actualizar
+      const refDoc = doc(db, "rows", rowId);
+      const snap = await getDoc(refDoc);
+      if (!snap.exists()) return;
+
+      const cur = snap.data()?.adjuntos || [];
+      const next = cur.filter(x => x.path !== att.path);
+      await updateDoc(refDoc, { adjuntos: next, updatedAt: serverTimestamp() });
+    }
+
+    function renderAttachmentsCell(id, adjuntos){
+      const arr = Array.isArray(adjuntos) ? adjuntos : [];
+      if (!arr.length) return `<div class="attachMeta">Sin adjuntos</div>`;
 
       return `
-        <div class="attLinks">
-          ${atts.map((a, idx) => `
-            <span>
-              <a href="${escapeHtml(a.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(a.name || "Adjunto")}</a>
-              <button class="small danger" type="button" data-action="delatt" data-att-idx="${idx}">X</button>
-            </span>
-          `).join("")}
+        <div class="attachBox">
+          <div class="attachList">
+            ${arr.map((a, idx) => `
+              <div class="attachItem">
+                <a href="${escapeHtml(a.url)}" target="_blank" rel="noopener">${escapeHtml(a.name || ("Adjunto " + (idx+1)))}</a>
+                <span class="attachMeta">${escapeHtml(fmtSize(a.size))}</span>
+                <button class="small danger attachDel" data-action="del-attach" data-path="${escapeHtml(a.path)}">🗑</button>
+              </div>
+            `).join("")}
+          </div>
         </div>
       `;
     }
 
     // ---- CRUD ----
     addBtn.addEventListener("click", async () => {
+      const files = $("adjuntos").files;
+
       const data = {
         factura: $("factura").value.trim(),
         division: $("division").value.trim(),
@@ -648,36 +563,37 @@
         carpeta: $("carpeta").value.trim(),
         fecha_estimada: $("fecha_estimada").value || "",
         oc: $("oc").value.trim(),
-        // ✅ Condiciones SI/NO
-        cond: safeYesNo($("cond").value),
-        wis: safeYesNo($("wis").value),
-        cierre: safeYesNo($("cierre").value),
-        attachments: [],
+        cond: $("cond").value,
+        wis: $("wis").value,
+        cierre: $("cierre").value,
+        adjuntos: [],
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
 
       const empty =
         !data.factura && !data.division && !data.transporte && !data.carpeta &&
-        !data.fecha_estimada && !data.oc && !selectedFiles.length;
+        !data.fecha_estimada && !data.oc && (!files || files.length === 0);
 
-      if (empty) { alert("Ingresá al menos un dato o adjuntá un archivo para agregar."); return; }
+      if (empty) { alert("Ingresá al menos un dato o adjuntá un archivo."); return; }
 
       try {
         msgEl.textContent = "Guardando...";
         addBtn.disabled = true;
 
-        // 1) creo doc primero para tener ID
-        const docRef = await withTimeout(addDoc(collection(db, "rows"), data), 15000);
+        // 1) creo doc
+        const ref = await withTimeout(addDoc(collection(db, "rows"), data), 15000);
 
-        // 2) subo adjuntos y guardo metadata
-        if (selectedFiles.length){
+        // 2) subo adjuntos (si hay) y actualizo doc
+        if (files && files.length){
           msgEl.textContent = "Subiendo adjuntos...";
-          const uploaded = await uploadAttachments(docRef.id, selectedFiles);
-          await withTimeout(updateDoc(doc(db, "rows", docRef.id), {
-            attachments: uploaded,
-            updatedAt: serverTimestamp()
-          }), 15000);
+          const uploaded = await withTimeout(uploadAttachmentsForRow(ref.id, files), 60000, "Subida lenta.");
+          if (uploaded.length){
+            await withTimeout(updateDoc(doc(db, "rows", ref.id), {
+              adjuntos: uploaded,
+              updatedAt: serverTimestamp()
+            }), 15000);
+          }
         }
 
         msgEl.textContent = "";
@@ -687,7 +603,7 @@
         console.error(e);
         msgEl.textContent = "";
         showToast("No se pudo guardar/subir", true);
-        alert("No se pudo guardar/subir. Revisá reglas/permisos (Firestore/Storage) o la red.");
+        alert("No se pudo guardar o subir adjuntos. Revisá reglas/permisos o la red.");
       } finally {
         addBtn.disabled = false;
       }
@@ -711,7 +627,7 @@
             <td>${escapeHtml(r.cond)}</td>
             <td>${escapeHtml(r.wis)}</td>
             <td>${escapeHtml(r.cierre)}</td>
-            <td>${renderAttachmentsCell(id, r)}</td>
+            <td>${renderAttachmentsCell(id, r.adjuntos)}</td>
             <td>
               <div class="actions">
                 <button class="small secondary" data-action="edit">Editar</button>
@@ -728,13 +644,14 @@
       const carpeta = escapeHtml(r.carpeta || "");
       const fecha_estimada = escapeHtml(r.fecha_estimada || "");
       const oc = escapeHtml(r.oc || "");
-      const cond = safeYesNo(r.cond || "SI");
-      const wis = safeYesNo(r.wis || "SI");
-      const cierre = safeYesNo(r.cierre || "SI");
+      const cond = r.cond || "SI";
+      const wis = r.wis || "SI";
+      const cierre = r.cierre || "SI";
 
       return `
         <tr data-id="${id}">
           <td>${escapeHtml(dtTxt)}</td>
+
           <td><input class="cell-input w140" data-field="factura" value="${factura}"></td>
           <td><input class="cell-input w200" data-field="division" value="${division}"></td>
           <td><input class="cell-input w200" data-field="transporte" value="${transporte}"></td>
@@ -763,7 +680,15 @@
             </select>
           </td>
 
-          <td>${renderAttachmentsCell(id, r)}</td>
+          <td>
+            <div class="attachBox">
+              ${renderAttachmentsCell(id, r.adjuntos)}
+              <div style="margin-top:8px">
+                <input type="file" class="cell-input w220" data-add-files multiple />
+                <div class="attachMeta">Podés agregar más adjuntos y luego “Guardar”.</div>
+              </div>
+            </div>
+          </td>
 
           <td>
             <div class="actions">
@@ -781,6 +706,18 @@
       tbody.innerHTML = dataToDraw.map(x => renderRow(x.id, x.data)).join("");
     }
 
+    // ---- Auth anónimo (no pide nada, pero habilita reglas seguras) ----
+    async function ensureAnonAuth(){
+      try{
+        if (!auth.currentUser) await signInAnonymously(auth);
+      }catch(e){
+        console.error(e);
+        showToast("No se pudo iniciar auth anónima", true);
+      }
+    }
+    onAuthStateChanged(auth, () => { /* noop */ });
+    await ensureAnonAuth();
+
     // Listener en tiempo real
     const qSnap = query(collection(db, "rows"), orderBy("createdAt", "desc"));
     onSnapshot(qSnap, (snap) => {
@@ -793,7 +730,7 @@
       showToast("No se pudo leer Firestore", true);
     });
 
-    // Acciones de tabla
+    // Acciones tabla
     tbody.addEventListener("click", async (e) => {
       const btn = e.target.closest("button[data-action]");
       if (!btn) return;
@@ -807,14 +744,35 @@
       if (action === "edit") { editingRowId = id; draw(); return; }
       if (action === "cancel") { editingRowId = null; draw(); return; }
 
+      if (action === "del-attach") {
+        // borrar solo 1 adjunto
+        const path = btn.dataset.path;
+        if (!path) return;
+        if (!confirm("¿Eliminar este adjunto?")) return;
+
+        try{
+          btn.disabled = true;
+          await ensureAnonAuth();
+          await withTimeout(deleteAttachment(id, { path }), 30000, "Borrado lento.");
+          showToast("Adjunto eliminado");
+        }catch(err){
+          console.error(err);
+          showToast("No se pudo eliminar adjunto", true);
+          alert("No se pudo eliminar el adjunto. Revisá reglas/permisos o red.");
+        }finally{
+          btn.disabled = false;
+        }
+        return;
+      }
+
       if (action === "save") {
         const fields = tr.querySelectorAll("[data-field]");
         const updated = {};
         fields.forEach(el => updated[el.dataset.field] = (el.value ?? "").toString().trim());
 
-        updated.cond = safeYesNo(updated.cond);
-        updated.wis  = safeYesNo(updated.wis);
-        updated.cierre  = safeYesNo(updated.cierre);
+        updated.cond = updated.cond === "NO" ? "NO" : "SI";
+        updated.wis  = updated.wis  === "NO" ? "NO" : "SI";
+        updated.cierre = updated.cierre === "NO" ? "NO" : "SI";
 
         const empty =
           !updated.factura && !updated.division && !updated.transporte && !updated.carpeta &&
@@ -822,9 +780,28 @@
 
         if (empty) { alert("La fila no puede quedar vacía."); return; }
 
+        // adjuntos nuevos en modo edición (si agregan)
+        const fileInput = tr.querySelector("[data-add-files]");
+        const newFiles = fileInput?.files;
+
         try {
           btn.disabled = true;
+          await ensureAnonAuth();
+
+          // 1) update campos
           await withTimeout(updateDoc(doc(db, "rows", id), { ...updated, updatedAt: serverTimestamp() }), 15000);
+
+          // 2) subir nuevos adjuntos y mergear al array
+          if (newFiles && newFiles.length){
+            const uploaded = await withTimeout(uploadAttachmentsForRow(id, newFiles), 60000, "Subida lenta.");
+            if (uploaded.length){
+              // arrayUnion funciona item por item, lo hacemos así:
+              for (const a of uploaded){
+                await updateDoc(doc(db, "rows", id), { adjuntos: arrayUnion(a), updatedAt: serverTimestamp() });
+              }
+            }
+          }
+
           editingRowId = null;
           showToast("Modificado con éxito");
           applyFilters();
@@ -838,44 +815,23 @@
         return;
       }
 
-      // ✅ borrar adjunto individual (Storage + Firestore)
-      if (action === "delatt") {
-        const idx = Number(btn.dataset.attIdx);
-        if (Number.isNaN(idx)) return;
-
-        const row = cache.find(x => x.id === id);
-        const atts = row?.data?.attachments || [];
-        const att = atts[idx];
-        if (!att?.path) { alert("Adjunto inválido."); return; }
-
-        if (!confirm(`¿Borrar adjunto "${att.name}"?`)) return;
-
-        try {
-          btn.disabled = true;
-
-          await withTimeout(deleteObject(sRef(storage, att.path)), 15000);
-
-          const next = atts.filter((_, i) => i !== idx);
-          await withTimeout(updateDoc(doc(db, "rows", id), {
-            attachments: next,
-            updatedAt: serverTimestamp()
-          }), 15000);
-
-          showToast("Adjunto borrado");
-        } catch (err) {
-          console.error(err);
-          showToast("No se pudo borrar adjunto", true);
-          alert("No se pudo borrar el adjunto (Storage/Reglas/Red).");
-        } finally {
-          btn.disabled = false;
-        }
-        return;
-      }
-
       if (action === "delete") {
-        if (!confirm("¿Seguro que querés eliminar esta fila? (No borra adjuntos automáticamente)")) return;
+        if (!confirm("¿Seguro que querés eliminar esta fila? (También borra adjuntos)")) return;
+
         try {
           btn.disabled = true;
+          await ensureAnonAuth();
+
+          // 1) borrar adjuntos primero (si hay)
+          const row = cache.find(x => x.id === id)?.data;
+          const adj = Array.isArray(row?.adjuntos) ? row.adjuntos : [];
+          for (const a of adj){
+            if (a?.path){
+              try{ await deleteObject(sRef(storage, a.path)); } catch(e){ /* no frenar por uno */ }
+            }
+          }
+
+          // 2) borrar doc
           await withTimeout(deleteDoc(doc(db, "rows", id)), 15000);
           if (editingRowId === id) editingRowId = null;
           showToast("Eliminado con éxito");
@@ -888,11 +844,6 @@
         }
       }
     });
-
-    // init preview
-    renderAttPreview();
   </script>
 </body>
 </html>
-
-
