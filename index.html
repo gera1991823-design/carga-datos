@@ -428,14 +428,15 @@
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
 
     // ✅ PEGA ACÁ EL CONFIG COMPLETO (Project settings -> SDK config)
-    const firebaseConfig = {
-      apiKey: "PEGAR_API_KEY",
-      authDomain: "carpetas-17846.firebaseapp.com",
-      projectId: "carpetas-17846",
-      storageBucket: "carpetas-17846.appspot.com",
-      messagingSenderId: "PEGAR_SENDER_ID",
-      appId: "PEGAR_APP_ID"
-    };
+   const firebaseConfig = {
+  apiKey: "AIzaSyDIGkNekvGn0XrqGvDAuutCBSglod03644",
+  authDomain: "carpetas-17846.firebaseapp.com",
+  projectId: "carpetas-17846",
+  storageBucket: "carpetas-17846.appspot.com", // 🔥 ESTE ES EL CAMBIO
+  messagingSenderId: "513234224676",
+  appId: "1:513234224676:web:a61b7ab9685594d1b5bab1",
+  measurementId: "G-8Z18FTM0L6"
+};
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -874,3 +875,4 @@
   </script>
 </body>
 </html>
+
