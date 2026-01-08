@@ -196,11 +196,19 @@
       background: rgba(255,255,255,.03);
       padding:8px 10px;border-radius:12px;
     }
-    .attName{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#d6d7df}
-    .attLinks{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+    .attName{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#d6d7df}
+    .attLinks{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center}
     a{color:#d9f1d3}
+    .pillX{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:22px;height:22px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.15);
+      background: rgba(176,0,32,.16);
+      color:#ffd7dc;font-weight:900;
+      cursor:pointer;
+    }
 
-    /* Alta: que todo entre y Adjuntos visible al final (derecha) */
+    /* Alta: todo en 1 fila y adjuntos al final */
     .row-add{
       display:flex;
       flex-wrap: nowrap;
@@ -215,13 +223,13 @@
 
     .attWrap{
       margin-left:auto;
-      flex: 0 0 260px;
-      max-width: 260px;
+      flex: 0 0 270px;
+      max-width: 270px;
     }
 
     .row-add input[type="file"]{
-      min-width:260px;
-      max-width:260px;
+      min-width:270px;
+      max-width:270px;
       padding:8px 10px;
     }
     .row-add input[type="file"]::file-selector-button{
@@ -234,7 +242,6 @@
       color: var(--text);
       margin-right:8px;
     }
-    .row-add input[type="file"]::file-selector-button:hover{transform: translateY(-1px);}
 
     @media (max-width: 1200px){
       .row-add{overflow-x:auto;padding-bottom:6px}
@@ -421,13 +428,15 @@
       getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
 
-    // ✅ PEGAR TU CONFIG REAL (IMPORTANTE: storageBucket real)
-   const firebaseConfig = {
-  projectId: "carpetas-17846",
-  authDomain: "carpetas-17846.firebaseapp.com",
-  storageBucket: "carpetas-17846.appspot.com",
-};
-
+    // ✅ PEGAR TU CONFIG REAL
+    const firebaseConfig = {
+      apiKey: "PEGAR_TU_API_KEY",
+      authDomain: "carpetas-17846.firebaseapp.com",
+      projectId: "carpetas-17846",
+      storageBucket: "carpetas-17846.appspot.com",
+      messagingSenderId: "PEGAR_TU_SENDER_ID",
+      appId: "PEGAR_TU_APP_ID"
+    };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -451,13 +460,25 @@
       toastEl.classList.toggle("err", isError);
       toastEl.style.display = "block";
       clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => toastEl.style.display = "none", 3000);
+      showToast._t = setTimeout(() => toastEl.style.display = "none", 4500);
     }
 
     function escapeHtml(s){
       return String(s ?? "")
         .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
         .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    }
+
+    function errText(e){
+      const code = e?.code ? `[${e.code}] ` : "";
+      const msg = e?.message || String(e);
+      return code + msg;
+    }
+    function whereErr(e){
+      const c = (e?.code || "").toString();
+      if (c.startsWith("storage/")) return "STORAGE";
+      if (c.includes("permission") || c.includes("PERMISSION")) return "FIRESTORE/REGLAS";
+      return "DESCONOCIDO";
     }
 
     function clearAddForm() {
@@ -649,8 +670,10 @@
       for (const file of files){
         const path = `rows/${rowId}/${uid()}_${file.name}`;
         const ref = sRef(storage, path);
-        await withTimeout(uploadBytes(ref, file), 30000, "Timeout subiendo adjunto");
-        const url = await withTimeout(getDownloadURL(ref), 15000, "Timeout obteniendo URL");
+
+        // ⬆️ timeout más alto
+        await withTimeout(uploadBytes(ref, file), 120000, "Timeout subiendo adjunto");
+        const url = await withTimeout(getDownloadURL(ref), 30000, "Timeout obteniendo URL");
         uploaded.push({ name: file.name, path, url, size: file.size });
       }
       return uploaded;
@@ -662,10 +685,8 @@
       return `
         <div class="attLinks">
           ${atts.map((a, idx) => `
-            <span>
-              <a href="${escapeHtml(a.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(a.name || "Adjunto")}</a>
-              <button class="small danger" type="button" data-action="delatt" data-att-idx="${idx}">X</button>
-            </span>
+            <a href="${escapeHtml(a.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(a.name || "Adjunto")}</a>
+            <span class="pillX" title="Borrar adjunto" data-action="delatt" data-att-idx="${idx}">×</span>
           `).join("")}
         </div>
       `;
@@ -699,21 +720,21 @@
 
       let rowId = null;
       try {
-        // 1) Crear fila
-        const docRef = await withTimeout(addDoc(collection(db, "rows"), data), 15000);
+        // 1) Crear fila (Firestore)
+        const docRef = await withTimeout(addDoc(collection(db, "rows"), data), 20000);
         rowId = docRef.id;
 
-        // 2) Subir adjuntos
+        // 2) Subir adjuntos (Storage)
         if (selectedFiles.length){
           msgEl.textContent = "Subiendo adjuntos...";
           const uploaded = await uploadAttachments(rowId, selectedFiles);
 
-          // 3) Guardar metadata en la fila
+          // 3) Guardar metadata en la fila (Firestore)
           msgEl.textContent = "Actualizando fila...";
           await withTimeout(updateDoc(doc(db, "rows", rowId), {
             attachments: uploaded,
             updatedAt: serverTimestamp()
-          }), 15000);
+          }), 20000);
         }
 
         msgEl.textContent = "";
@@ -721,14 +742,16 @@
         showToast("Agregado con éxito");
       } catch (e) {
         console.error("ERROR agregar/subir:", e);
+        const detail = errText(e);
+        const w = whereErr(e);
 
-        // Si se creó la fila pero falló adjuntos, lo avisamos claro
-        if (rowId && selectedFiles.length) {
-          showToast("Fila creada, pero NO se pudieron guardar los adjuntos (permisos).", true);
-          alert("La fila se creó, pero falló la subida/guardado de adjuntos.\nRevisá reglas de Storage/Firestore (permissions).");
+        showToast(`Error (${w}): ${detail}`, true);
+
+        // si se creó la fila pero falló adjuntos:
+        if (rowId && selectedFiles.length){
+          alert(`La fila se creó, pero falló la subida/guardado de adjuntos.\n\n${detail}`);
         } else {
-          showToast("No se pudo guardar. Revisá reglas/permisos o red.", true);
-          alert("No se pudo guardar. Revisá reglas/permisos (Firestore) o la red.");
+          alert(`No se pudo guardar.\n\n${detail}`);
         }
       } finally {
         addBtn.disabled = false;
@@ -838,7 +861,7 @@
 
     // Acciones de tabla
     tbody.addEventListener("click", async (e) => {
-      const btn = e.target.closest("button[data-action]");
+      const btn = e.target.closest("[data-action]");
       if (!btn) return;
 
       const tr = e.target.closest("tr[data-id]");
@@ -867,21 +890,21 @@
 
         try {
           btn.disabled = true;
-          await withTimeout(updateDoc(doc(db, "rows", id), { ...updated, updatedAt: serverTimestamp() }), 15000);
+          await withTimeout(updateDoc(doc(db, "rows", id), { ...updated, updatedAt: serverTimestamp() }), 20000);
           editingRowId = null;
           showToast("Modificado con éxito");
           applyFilters();
         } catch (err) {
           console.error("ERROR updateDoc:", err);
-          showToast("No se pudo modificar (permisos).", true);
-          alert("No se pudo modificar. Revisá reglas/permisos de Firestore.");
+          showToast(`Error (FIRESTORE): ${errText(err)}`, true);
+          alert(errText(err));
         } finally {
           btn.disabled = false;
         }
         return;
       }
 
-      // Borrar adjunto individual (Storage + Firestore)
+      // Borrar adjunto individual
       if (action === "delatt") {
         const idx = Number(btn.dataset.attIdx);
         if (Number.isNaN(idx)) return;
@@ -890,31 +913,31 @@
         const atts = row?.data?.attachments || [];
         const att = atts[idx];
         if (!att?.path) { alert("Adjunto inválido."); return; }
-
         if (!confirm(`¿Borrar adjunto "${att.name}"?`)) return;
 
         try {
           btn.disabled = true;
-          await withTimeout(deleteObject(sRef(storage, att.path)), 15000);
+
+          await withTimeout(deleteObject(sRef(storage, att.path)), 20000);
 
           const next = atts.filter((_, i) => i !== idx);
           await withTimeout(updateDoc(doc(db, "rows", id), {
             attachments: next,
             updatedAt: serverTimestamp()
-          }), 15000);
+          }), 20000);
 
           showToast("Adjunto borrado");
         } catch (err) {
           console.error("ERROR borrar adjunto:", err);
-          showToast("No se pudo borrar adjunto (permisos).", true);
-          alert("No se pudo borrar el adjunto. Revisá reglas/permisos de Storage/Firestore.");
+          showToast(`Error (STORAGE/FIRESTORE): ${errText(err)}`, true);
+          alert(errText(err));
         } finally {
           btn.disabled = false;
         }
         return;
       }
 
-      // Eliminar fila (ahora borra adjuntos también)
+      // Eliminar fila (borra adjuntos también)
       if (action === "delete") {
         if (!confirm("¿Seguro que querés eliminar esta fila? (Borrará también los adjuntos)")) return;
 
@@ -924,22 +947,18 @@
         try {
           btn.disabled = true;
 
-          // 1) borrar adjuntos del storage
           for (const a of atts) {
-            if (a?.path) {
-              await withTimeout(deleteObject(sRef(storage, a.path)), 15000);
-            }
+            if (a?.path) await withTimeout(deleteObject(sRef(storage, a.path)), 20000);
           }
 
-          // 2) borrar doc
-          await withTimeout(deleteDoc(doc(db, "rows", id)), 15000);
+          await withTimeout(deleteDoc(doc(db, "rows", id)), 20000);
 
           if (editingRowId === id) editingRowId = null;
           showToast("Eliminado con éxito");
         } catch (err) {
           console.error("ERROR delete:", err);
-          showToast("No se pudo eliminar (permisos).", true);
-          alert("No se pudo eliminar. Revisá reglas/permisos de Firestore/Storage.");
+          showToast(`Error (FIRESTORE/STORAGE): ${errText(err)}`, true);
+          alert(errText(err));
         } finally {
           btn.disabled = false;
         }
@@ -951,4 +970,3 @@
   </script>
 </body>
 </html>
-
