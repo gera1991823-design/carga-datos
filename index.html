@@ -197,7 +197,7 @@
       padding:8px 10px;border-radius:12px;
     }
     .attName{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#d6d7df}
-    .attLinks{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center}
+    .attLinks{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
     a{color:#d9f1d3}
     .pillX{
       display:inline-flex;align-items:center;justify-content:center;
@@ -208,7 +208,6 @@
       cursor:pointer;
     }
 
-    /* Alta: todo en 1 fila y adjuntos al final */
     .row-add{
       display:flex;
       flex-wrap: nowrap;
@@ -425,19 +424,24 @@
       serverTimestamp, query, orderBy, onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
     import {
-      getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject
+      getStorage, ref as sRef, uploadBytesResumable, getDownloadURL, deleteObject
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
 
-    // ✅ PEGAR TU CONFIG REAL
-const firebaseConfig = {
-  projectId: "carpetas-17846",
-  authDomain: "carpetas-17846.firebaseapp.com",
-  storageBucket: "carpetas-17846.appspot.com",
-};
+    // ✅ PEGA ACÁ EL CONFIG COMPLETO (Project settings -> SDK config)
+    const firebaseConfig = {
+      apiKey: "PEGAR_API_KEY",
+      authDomain: "carpetas-17846.firebaseapp.com",
+      projectId: "carpetas-17846",
+      storageBucket: "carpetas-17846.appspot.com",
+      messagingSenderId: "PEGAR_SENDER_ID",
+      appId: "PEGAR_APP_ID"
+    };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const storage = getStorage(app);
+
+    // ✅ Fuerzo bucket explícito (evita “bucket equivocado”)
+    const storage = getStorage(app, "gs://carpetas-17846.appspot.com");
 
     const $ = (id) => document.getElementById(id);
     const tbody = $("tbody");
@@ -448,9 +452,7 @@ const firebaseConfig = {
     let editingRowId = null;
     let cache = [];
     let view = [];
-
-    // ---- Adjuntos (alta) ----
-    let selectedFiles = []; // Array<File>
+    let selectedFiles = [];
 
     function showToast(text, isError=false){
       toastEl.textContent = text;
@@ -471,12 +473,9 @@ const firebaseConfig = {
       const msg = e?.message || String(e);
       return code + msg;
     }
-    function whereErr(e){
-      const c = (e?.code || "").toString();
-      if (c.startsWith("storage/")) return "STORAGE";
-      if (c.includes("permission") || c.includes("PERMISSION")) return "FIRESTORE/REGLAS";
-      return "DESCONOCIDO";
-    }
+
+    function safeYesNo(v){ return (v === "NO") ? "NO" : "SI"; }
+    function uid(){ return (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`); }
 
     function clearAddForm() {
       $("factura").value = "";
@@ -511,7 +510,7 @@ const firebaseConfig = {
     $("adjuntos").addEventListener("change", (e) => {
       const incoming = Array.from(e.target.files || []);
       if (incoming.length) selectedFiles = selectedFiles.concat(incoming);
-      $("adjuntos").value = ""; // permite volver a elegir el mismo archivo
+      $("adjuntos").value = "";
       renderAttPreview();
     });
 
@@ -524,13 +523,6 @@ const firebaseConfig = {
       renderAttPreview();
     });
 
-    function withTimeout(promise, ms, timeoutMsg="Tiempo de espera agotado") {
-      let t;
-      const timeout = new Promise((_, rej) => { t = setTimeout(() => rej(new Error(timeoutMsg)), ms); });
-      return Promise.race([promise, timeout]).finally(() => clearTimeout(t));
-    }
-
-    // ---- Filtros ----
     function norm(s){ return (s ?? "").toString().trim().toLowerCase(); }
 
     function matchesText(row, q){
@@ -599,81 +591,32 @@ const firebaseConfig = {
       applyFilters();
     });
 
-    // ---- Export (CSV -> Excel) ----
-    function csvEscape(value){
-      const s = (value ?? "").toString();
-      const mustQuote = /[",\n\r;]/.test(s);
-      const escaped = s.replaceAll('"','""');
-      return mustQuote ? `"${escaped}"` : escaped;
-    }
+    async function uploadOne(rowId, file){
+      const path = `rows/${rowId}/${uid()}_${file.name}`;
+      const ref = sRef(storage, path);
 
-    function toCsv(rows){
-      const headers = [
-        "Fecha carga","Factura","División","Transporte","Carpeta",
-        "Fecha estimada","Orden compra","Condiciones","WIS","Cierre carpeta","Adjuntos"
-      ];
-      const lines = [headers.map(csvEscape).join(",")];
+      // ✅ resumable: no queda “colgado”, devuelve error real
+      const task = uploadBytesResumable(ref, file);
 
-      rows.forEach(x=>{
-        const r = x.data;
-        const dt = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : "";
-        const atts = (r.attachments || []).map(a => a?.name || "").join(" | ");
-        const line = [
-          dt,
-          r.factura || "",
-          r.division || "",
-          r.transporte || "",
-          r.carpeta || "",
-          r.fecha_estimada || "",
-          r.oc || "",
-          r.cond || "",
-          r.wis || "",
-          r.cierre || "",
-          atts
-        ].map(csvEscape).join(",");
-        lines.push(line);
+      await new Promise((resolve, reject) => {
+        task.on("state_changed",
+          (snap) => {
+            const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+            msgEl.textContent = `Subiendo adjuntos... ${pct}%`;
+          },
+          (err) => reject(err),
+          () => resolve()
+        );
       });
 
-      return lines.join("\n");
+      const url = await getDownloadURL(ref);
+      return { name: file.name, path, url, size: file.size };
     }
-
-    function downloadCsv(filename, csv){
-      const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    $("exportBtn").addEventListener("click", ()=>{
-      const rows = (view.length ? view : cache);
-      const csv = toCsv(rows);
-      const stamp = new Date().toISOString().slice(0,19).replaceAll(":","-");
-      downloadCsv(`interagrovial_carga_${stamp}.csv`, csv);
-      showToast("Descarga lista (CSV para Excel)");
-    });
-
-    // ---- Helpers ----
-    function safeYesNo(v){ return (v === "NO") ? "NO" : "SI"; }
-    function uid(){ return (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`); }
 
     async function uploadAttachments(rowId, files){
-      if (!files?.length) return [];
-      const uploaded = [];
-      for (const file of files){
-        const path = `rows/${rowId}/${uid()}_${file.name}`;
-        const ref = sRef(storage, path);
-
-        // ⬆️ timeout más alto
-        await withTimeout(uploadBytes(ref, file), 120000, "Timeout subiendo adjunto");
-        const url = await withTimeout(getDownloadURL(ref), 30000, "Timeout obteniendo URL");
-        uploaded.push({ name: file.name, path, url, size: file.size });
-      }
-      return uploaded;
+      const out = [];
+      for (const f of files) out.push(await uploadOne(rowId, f));
+      return out;
     }
 
     function renderAttachmentsCell(r){
@@ -689,7 +632,6 @@ const firebaseConfig = {
       `;
     }
 
-    // ---- CRUD: Agregar ----
     addBtn.addEventListener("click", async () => {
       const data = {
         factura: $("factura").value.trim(),
@@ -717,39 +659,22 @@ const firebaseConfig = {
 
       let rowId = null;
       try {
-        // 1) Crear fila (Firestore)
-        const docRef = await withTimeout(addDoc(collection(db, "rows"), data), 20000);
+        const docRef = await addDoc(collection(db, "rows"), data);
         rowId = docRef.id;
 
-        // 2) Subir adjuntos (Storage)
         if (selectedFiles.length){
-          msgEl.textContent = "Subiendo adjuntos...";
           const uploaded = await uploadAttachments(rowId, selectedFiles);
-
-          // 3) Guardar metadata en la fila (Firestore)
           msgEl.textContent = "Actualizando fila...";
-          await withTimeout(updateDoc(doc(db, "rows", rowId), {
-            attachments: uploaded,
-            updatedAt: serverTimestamp()
-          }), 20000);
+          await updateDoc(doc(db, "rows", rowId), { attachments: uploaded, updatedAt: serverTimestamp() });
         }
 
         msgEl.textContent = "";
         clearAddForm();
         showToast("Agregado con éxito");
       } catch (e) {
-        console.error("ERROR agregar/subir:", e);
-        const detail = errText(e);
-        const w = whereErr(e);
-
-        showToast(`Error (${w}): ${detail}`, true);
-
-        // si se creó la fila pero falló adjuntos:
-        if (rowId && selectedFiles.length){
-          alert(`La fila se creó, pero falló la subida/guardado de adjuntos.\n\n${detail}`);
-        } else {
-          alert(`No se pudo guardar.\n\n${detail}`);
-        }
+        console.error("ERROR:", e);
+        showToast(`Error: ${errText(e)}`, true);
+        alert(errText(e));
       } finally {
         addBtn.disabled = false;
         msgEl.textContent = "";
@@ -844,7 +769,6 @@ const firebaseConfig = {
       tbody.innerHTML = dataToDraw.map(x => renderRow(x.id, x.data)).join("");
     }
 
-    // Listener en tiempo real
     const qSnap = query(collection(db, "rows"), orderBy("createdAt", "desc"));
     onSnapshot(qSnap, (snap) => {
       cache = [];
@@ -856,7 +780,6 @@ const firebaseConfig = {
       showToast("No se pudo leer Firestore", true);
     });
 
-    // Acciones de tabla
     tbody.addEventListener("click", async (e) => {
       const btn = e.target.closest("[data-action]");
       if (!btn) return;
@@ -879,21 +802,14 @@ const firebaseConfig = {
         updated.wis  = safeYesNo(updated.wis);
         updated.cierre  = safeYesNo(updated.cierre);
 
-        const empty =
-          !updated.factura && !updated.division && !updated.transporte && !updated.carpeta &&
-          !updated.fecha_estimada && !updated.oc;
-
-        if (empty) { alert("La fila no puede quedar vacía."); return; }
-
         try {
           btn.disabled = true;
-          await withTimeout(updateDoc(doc(db, "rows", id), { ...updated, updatedAt: serverTimestamp() }), 20000);
+          await updateDoc(doc(db, "rows", id), { ...updated, updatedAt: serverTimestamp() });
           editingRowId = null;
           showToast("Modificado con éxito");
-          applyFilters();
         } catch (err) {
-          console.error("ERROR updateDoc:", err);
-          showToast(`Error (FIRESTORE): ${errText(err)}`, true);
+          console.error(err);
+          showToast(`Error: ${errText(err)}`, true);
           alert(errText(err));
         } finally {
           btn.disabled = false;
@@ -901,32 +817,26 @@ const firebaseConfig = {
         return;
       }
 
-      // Borrar adjunto individual
       if (action === "delatt") {
         const idx = Number(btn.dataset.attIdx);
-        if (Number.isNaN(idx)) return;
-
         const row = cache.find(x => x.id === id);
         const atts = row?.data?.attachments || [];
         const att = atts[idx];
-        if (!att?.path) { alert("Adjunto inválido."); return; }
+        if (!att?.path) return;
+
         if (!confirm(`¿Borrar adjunto "${att.name}"?`)) return;
 
         try {
           btn.disabled = true;
-
-          await withTimeout(deleteObject(sRef(storage, att.path)), 20000);
+          await deleteObject(sRef(storage, att.path));
 
           const next = atts.filter((_, i) => i !== idx);
-          await withTimeout(updateDoc(doc(db, "rows", id), {
-            attachments: next,
-            updatedAt: serverTimestamp()
-          }), 20000);
+          await updateDoc(doc(db, "rows", id), { attachments: next, updatedAt: serverTimestamp() });
 
           showToast("Adjunto borrado");
         } catch (err) {
-          console.error("ERROR borrar adjunto:", err);
-          showToast(`Error (STORAGE/FIRESTORE): ${errText(err)}`, true);
+          console.error(err);
+          showToast(`Error: ${errText(err)}`, true);
           alert(errText(err));
         } finally {
           btn.disabled = false;
@@ -934,27 +844,25 @@ const firebaseConfig = {
         return;
       }
 
-      // Eliminar fila (borra adjuntos también)
       if (action === "delete") {
-        if (!confirm("¿Seguro que querés eliminar esta fila? (Borrará también los adjuntos)")) return;
-
         const row = cache.find(x => x.id === id);
         const atts = row?.data?.attachments || [];
+
+        if (!confirm("¿Seguro que querés eliminar esta fila? (Borra adjuntos también)")) return;
 
         try {
           btn.disabled = true;
 
           for (const a of atts) {
-            if (a?.path) await withTimeout(deleteObject(sRef(storage, a.path)), 20000);
+            if (a?.path) await deleteObject(sRef(storage, a.path));
           }
-
-          await withTimeout(deleteDoc(doc(db, "rows", id)), 20000);
+          await deleteDoc(doc(db, "rows", id));
 
           if (editingRowId === id) editingRowId = null;
           showToast("Eliminado con éxito");
         } catch (err) {
-          console.error("ERROR delete:", err);
-          showToast(`Error (FIRESTORE/STORAGE): ${errText(err)}`, true);
+          console.error(err);
+          showToast(`Error: ${errText(err)}`, true);
           alert(errText(err));
         } finally {
           btn.disabled = false;
@@ -962,9 +870,7 @@ const firebaseConfig = {
       }
     });
 
-    // init preview
     renderAttPreview();
   </script>
 </body>
 </html>
-
