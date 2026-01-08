@@ -395,11 +395,24 @@
   <div class="footer"><b>INTERAGROVIAL S.A</b></div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-    import {
-      getFirestore, collection, addDoc, doc, updateDoc, deleteDoc,
-      serverTimestamp, query, orderBy, onSnapshot
-    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } 
+  from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+
+const auth = getAuth(app);
+
+// UI simple (podés hacerlo más lindo después)
+async function login(email, pass){
+  await signInWithEmailAndPassword(auth, email, pass);
+}
+
+onAuthStateChanged(auth, (user)=>{
+  if(!user){
+    alert("Tenés que iniciar sesión");
+    // acá podés mostrar un modal de login
+  } else {
+    console.log("Logueado:", user.email);
+  }
+});
 
     // ✅ PEGÁ ACÁ TU CONFIG REAL (la que ya te funciona)
     // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -768,6 +781,7 @@ const firebaseConfig = {
   </script>
 </body>
 </html>
+
 
 
 
