@@ -188,7 +188,7 @@
     }
     .footer b{color:var(--jd-green)}
 
-    /* ✅ Adjuntos UI */
+    /* -------------------- ✅ Adjuntos UI -------------------- */
     .attList{display:flex;flex-direction:column;gap:6px;margin-top:6px}
     .attItem{
       display:flex;gap:8px;align-items:center;justify-content:space-between;
@@ -200,20 +200,39 @@
     .attLinks{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
     a{color:#d9f1d3}
 
-    /* ✅ Adjuntos al final de la fila (empuja a la derecha) */
+    /* ✅ SOLO para la fila de alta: permitir que todo entre y Adjuntos quede visible */
+    .row-add{
+      display:flex;
+      flex-wrap: nowrap;   /* una sola línea */
+      gap:10px;
+      align-items:flex-end;
+    }
+    .row-add > div{
+      flex: 0 1 auto;      /* permite encoger */
+      min-width: 0;        /* clave */
+    }
+    .row-add input,
+    .row-add select{
+      min-width: 120px;    /* antes 160 global */
+    }
+    .row-add .w200{min-width:160px}
+    .row-add .w140{min-width:120px}
+    .row-add input[type="date"]{min-width:140px}
+
+    /* ✅ Adjuntos al final y SIEMPRE visible */
     .attWrap{
-      min-width: 220px;
+      margin-left:auto;
+      flex: 0 0 260px;      /* ancho fijo para asegurar visibilidad */
       max-width: 260px;
-      margin-left: auto;
     }
 
-    /* ✅ Que el input file se vea bien en oscuro y no rompa la fila */
-    input[type="file"]{
-      min-width: 220px;
+    /* ✅ Input file visible en oscuro */
+    .row-add input[type="file"]{
+      min-width: 260px;
       max-width: 260px;
       padding: 8px 10px;
     }
-    input[type="file"]::file-selector-button{
+    .row-add input[type="file"]::file-selector-button{
       padding:8px 10px;
       border:1px solid var(--border-strong);
       background: rgba(255,255,255,.06);
@@ -223,20 +242,15 @@
       color: var(--text);
       margin-right:8px;
     }
-    input[type="file"]::file-selector-button:hover{
+    .row-add input[type="file"]::file-selector-button:hover{
       transform: translateY(-1px);
     }
 
-    /* ✅ En la fila de alta, que no se vaya abajo */
-    .row-add{
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      padding-bottom: 6px;
-    }
-    .row-add::-webkit-scrollbar{height:8px}
-    .row-add::-webkit-scrollbar-thumb{
-      background: rgba(255,255,255,.12);
-      border-radius: 999px;
+    /* ✅ Si la pantalla es chica, habilitamos scroll horizontal (sin romper) */
+    @media (max-width: 1200px){
+      .row-add{overflow-x:auto;padding-bottom:6px}
+      .row-add::-webkit-scrollbar{height:8px}
+      .row-add::-webkit-scrollbar-thumb{background: rgba(255,255,255,.12);border-radius:999px}
     }
   </style>
 </head>
@@ -317,7 +331,7 @@
     <div class="accentBar"></div>
     <h3>Agregar fila</h3>
 
-    <!-- ✅ row-add: no wrap, scroll horizontal si falta espacio -->
+    <!-- ✅ row-add: una línea, adjuntos visibles al final -->
     <div class="row row-add">
       <div>
         <label>Factura</label>
@@ -373,7 +387,7 @@
         </select>
       </div>
 
-      <!-- ✅ Adjuntos al final (a la derecha) -->
+      <!-- ✅ Adjuntos al final (derecha) -->
       <div class="attWrap">
         <label>Adjuntos</label>
         <input id="adjuntos" type="file" multiple />
@@ -641,13 +655,8 @@
     });
 
     // ---- Helpers ----
-    function safeYesNo(v){
-      return (v === "NO") ? "NO" : "SI";
-    }
-
-    function uid(){
-      return (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`);
-    }
+    function safeYesNo(v){ return (v === "NO") ? "NO" : "SI"; }
+    function uid(){ return (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`); }
 
     async function uploadAttachments(rowId, files){
       if (!files?.length) return [];
@@ -665,7 +674,6 @@
     function renderAttachmentsCell(id, r){
       const atts = r.attachments || [];
       if (!atts.length) return `<span class="muted">—</span>`;
-
       return `
         <div class="attLinks">
           ${atts.map((a, idx) => `
@@ -874,7 +882,7 @@
         return;
       }
 
-      // ✅ borrar adjunto individual (Storage + Firestore)
+      // ✅ borrar adjunto individual
       if (action === "delatt") {
         const idx = Number(btn.dataset.attIdx);
         if (Number.isNaN(idx)) return;
@@ -930,3 +938,4 @@
   </script>
 </body>
 </html>
+
