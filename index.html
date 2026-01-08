@@ -301,12 +301,12 @@
       </div>
 
       <div>
-        <label>Fecha estimada a ISA desde</label>
+        <label>Fecha estimada ISA desde</label>
         <input id="fDateFrom" type="date"/>
       </div>
 
       <div>
-        <label>Fecha estimada hasta</label>
+        <label>Fecha estimada ISA hasta</label>
         <input id="fDateTo" type="date"/>
       </div>
     </div>
@@ -341,7 +341,7 @@
       </div>
 
       <div>
-        <label>Fecha estimada</label>
+        <label>Fecha estimada ISA</label>
         <input id="fecha_estimada" type="date" />
       </div>
 
@@ -382,7 +382,7 @@
         <th>División</th>
         <th>Transporte</th>
         <th>Carpeta</th>
-        <th>Fecha estimada</th>
+        <th>Fecha estimada ISA</th>
         <th>Orden compra</th>
         <th>Condiciones</th>
         <th>WIS</th>
@@ -535,7 +535,7 @@ const firebaseConfig = {
     function toCsv(rows){
       const headers = [
         "Fecha carga","Factura","División","Transporte","Carpeta",
-        "Fecha estimada","Orden compra","Condiciones","WIS"
+        "Fecha estimada ISA","Orden compra","Condiciones","WIS"
       ];
       const lines = [headers.map(csvEscape).join(",")];
 
@@ -768,6 +768,7 @@ const firebaseConfig = {
   </script>
 </body>
 </html>
+
 
 
 
