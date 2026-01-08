@@ -187,6 +187,19 @@
       backdrop-filter: blur(6px);
     }
     .footer b{color:var(--jd-green)}
+
+    /* Adjuntos UI */
+    .attWrap{min-width:320px}
+    .attList{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+    .attItem{
+      display:flex;gap:8px;align-items:center;justify-content:space-between;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.03);
+      padding:8px 10px;border-radius:12px;
+    }
+    .attName{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#d6d7df}
+    .attLinks{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+    a{color:#d9f1d3}
   </style>
 </head>
 
@@ -321,6 +334,13 @@
         </select>
       </div>
 
+      <!-- ✅ Adjuntos -->
+      <div class="attWrap">
+        <label>Adjuntos (podés borrar 1 por 1)</label>
+        <input id="adjuntos" type="file" multiple />
+        <div id="attPreview" class="attList"></div>
+      </div>
+
       <button id="addBtn" class="primary" type="button">Agregar</button>
     </div>
 
@@ -342,6 +362,7 @@
         <th>Condiciones</th>
         <th>WIS</th>
         <th>Cierre carpeta</th>
+        <th>Adjuntos</th>
         <th>Acciones</th>
       </tr>
     </thead>
@@ -357,6 +378,11 @@
       serverTimestamp, query, orderBy, onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
+    // ✅ Storage (para adjuntos)
+    import {
+      getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject
+    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
+
     // ✅ PEGAR TU CONFIG REAL
     const firebaseConfig = {
       apiKey: "PEGAR_TU_API_KEY",
@@ -369,6 +395,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
     const $ = (id) => document.getElementById(id);
     const tbody = $("tbody");
@@ -379,6 +406,9 @@
     let editingRowId = null;
     let cache = [];
     let view = [];
+
+    // ---- Adjuntos (alta) ----
+    let selectedFiles = []; // array<File>
 
     function showToast(text, isError=false){
       toastEl.textContent = text;
@@ -404,7 +434,44 @@
       $("cond").value = "SI";
       $("wis").value = "SI";
       $("cierre").value = "SI";
+
+      selectedFiles = [];
+      $("adjuntos").value = "";
+      renderAttPreview();
     }
+
+    function renderAttPreview(){
+      const wrap = $("attPreview");
+      if (!selectedFiles.length){
+        wrap.innerHTML = `<div class="muted">Sin adjuntos.</div>`;
+        return;
+      }
+      wrap.innerHTML = selectedFiles.map((f, idx) => `
+        <div class="attItem">
+          <div class="attName">${escapeHtml(f.name)} (${Math.round(f.size/1024)} KB)</div>
+          <button class="small danger" type="button" data-att-remove="${idx}">Quitar</button>
+        </div>
+      `).join("");
+    }
+
+    $("adjuntos").addEventListener("change", (e) => {
+      const incoming = Array.from(e.target.files || []);
+      if (incoming.length){
+        // se agregan a la lista existente
+        selectedFiles = selectedFiles.concat(incoming);
+      }
+      $("adjuntos").value = ""; // permite volver a elegir el mismo archivo si quieren
+      renderAttPreview();
+    });
+
+    $("attPreview").addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-att-remove]");
+      if (!btn) return;
+      const idx = Number(btn.dataset.attRemove);
+      if (Number.isNaN(idx)) return;
+      selectedFiles.splice(idx, 1);
+      renderAttPreview();
+    });
 
     function withTimeout(promise, ms, timeoutMsg="Tiempo de espera agotado") {
       let t;
@@ -412,14 +479,14 @@
       return Promise.race([promise, timeout]).finally(() => clearTimeout(t));
     }
 
-    // ---- Filtros ----
     function norm(s){ return (s ?? "").toString().trim().toLowerCase(); }
 
     function matchesText(row, q){
       if (!q) return true;
+      const atts = (row.attachments || []).map(a => a?.name || "").join(" ");
       const hay = [
         row.factura, row.division, row.transporte, row.carpeta,
-        row.fecha_estimada, row.oc, row.cond, row.wis, row.cierre
+        row.fecha_estimada, row.oc, row.cond, row.wis, row.cierre, atts
       ].map(norm).join(" | ");
       return hay.includes(q);
     }
@@ -491,13 +558,14 @@
     function toCsv(rows){
       const headers = [
         "Fecha carga","Factura","División","Transporte","Carpeta",
-        "Fecha estimada","Orden compra","Condiciones","WIS","Cierre carpeta"
+        "Fecha estimada","Orden compra","Condiciones","WIS","Cierre carpeta","Adjuntos"
       ];
       const lines = [headers.map(csvEscape).join(",")];
 
       rows.forEach(x=>{
         const r = x.data;
         const dt = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : "";
+        const atts = (r.attachments || []).map(a => a?.name || "").join(" | ");
         const line = [
           dt,
           r.factura || "",
@@ -508,7 +576,8 @@
           r.oc || "",
           r.cond || "",
           r.wis || "",
-          r.cierre || ""
+          r.cierre || "",
+          atts
         ].map(csvEscape).join(",");
         lines.push(line);
       });
@@ -536,6 +605,29 @@
       showToast("Descarga lista (CSV para Excel)");
     });
 
+    // ---- Upload helpers ----
+    function safeYesNo(v){
+      return (v === "NO") ? "NO" : "SI";
+    }
+
+    function uid(){
+      // suficientemente único para nombres de archivo
+      return (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`);
+    }
+
+    async function uploadAttachments(rowId, files){
+      if (!files?.length) return [];
+      const uploaded = [];
+      for (const file of files){
+        const path = `rows/${rowId}/${uid()}_${file.name}`;
+        const ref = sRef(storage, path);
+        await withTimeout(uploadBytes(ref, file), 30000, "Timeout subiendo adjunto");
+        const url = await withTimeout(getDownloadURL(ref), 15000, "Timeout obteniendo URL");
+        uploaded.push({ name: file.name, path, url, size: file.size });
+      }
+      return uploaded;
+    }
+
     // ---- CRUD ----
     addBtn.addEventListener("click", async () => {
       const data = {
@@ -545,23 +637,38 @@
         carpeta: $("carpeta").value.trim(),
         fecha_estimada: $("fecha_estimada").value || "",
         oc: $("oc").value.trim(),
-        cond: $("cond").value,
-        wis: $("wis").value,
-        cierre: $("cierre").value,
+        // ✅ Condiciones SI/NO
+        cond: safeYesNo($("cond").value),
+        wis: safeYesNo($("wis").value),
+        cierre: safeYesNo($("cierre").value),
+        attachments: [],
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
 
       const empty =
         !data.factura && !data.division && !data.transporte && !data.carpeta &&
-        !data.fecha_estimada && !data.oc;
+        !data.fecha_estimada && !data.oc && !selectedFiles.length;
 
-      if (empty) { alert("Ingresá al menos un dato para agregar."); return; }
+      if (empty) { alert("Ingresá al menos un dato o adjuntá un archivo para agregar."); return; }
 
       try {
         msgEl.textContent = "Guardando...";
         addBtn.disabled = true;
-        await withTimeout(addDoc(collection(db, "rows"), data), 15000);
+
+        // 1) creo doc primero para tener ID
+        const docRef = await withTimeout(addDoc(collection(db, "rows"), data), 15000);
+
+        // 2) subo adjuntos
+        if (selectedFiles.length){
+          msgEl.textContent = "Subiendo adjuntos...";
+          const uploaded = await uploadAttachments(docRef.id, selectedFiles);
+          await withTimeout(updateDoc(doc(db, "rows", docRef.id), {
+            attachments: uploaded,
+            updatedAt: serverTimestamp()
+          }), 15000);
+        }
+
         msgEl.textContent = "";
         clearAddForm();
         showToast("Agregado con éxito");
@@ -569,11 +676,28 @@
         console.error(e);
         msgEl.textContent = "";
         showToast("No se pudo guardar", true);
-        alert("No se pudo guardar. Revisá reglas/permisos o la red.");
+        alert("No se pudo guardar/subir. Revisá reglas/permisos (Firestore/Storage) o la red.");
       } finally {
         addBtn.disabled = false;
       }
     });
+
+    function renderAttachmentsCell(id, r){
+      const atts = r.attachments || [];
+      if (!atts.length) return `<span class="muted">—</span>`;
+
+      // ✅ en vista normal: link + botón borrar individual
+      return `
+        <div class="attLinks">
+          ${atts.map((a, idx) => `
+            <span>
+              <a href="${escapeHtml(a.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(a.name || "Adjunto")}</a>
+              <button class="small danger" type="button" data-action="delatt" data-att-idx="${idx}">X</button>
+            </span>
+          `).join("")}
+        </div>
+      `;
+    }
 
     function renderRow(id, r) {
       const dt = r.createdAt?.toDate ? r.createdAt.toDate() : null;
@@ -593,6 +717,7 @@
             <td>${escapeHtml(r.cond)}</td>
             <td>${escapeHtml(r.wis)}</td>
             <td>${escapeHtml(r.cierre)}</td>
+            <td>${renderAttachmentsCell(id, r)}</td>
             <td>
               <div class="actions">
                 <button class="small secondary" data-action="edit">Editar</button>
@@ -609,9 +734,9 @@
       const carpeta = escapeHtml(r.carpeta || "");
       const fecha_estimada = escapeHtml(r.fecha_estimada || "");
       const oc = escapeHtml(r.oc || "");
-      const cond = r.cond || "SI";
-      const wis = r.wis || "SI";
-      const cierre = r.cierre || "SI";
+      const cond = safeYesNo(r.cond || "SI");
+      const wis = safeYesNo(r.wis || "SI");
+      const cierre = safeYesNo(r.cierre || "SI");
 
       return `
         <tr data-id="${id}">
@@ -644,6 +769,8 @@
             </select>
           </td>
 
+          <td>${renderAttachmentsCell(id, r)}</td>
+
           <td>
             <div class="actions">
               <button class="small primary" data-action="save">Guardar</button>
@@ -658,6 +785,10 @@
     function draw() {
       const dataToDraw = (view.length ? view : cache);
       tbody.innerHTML = dataToDraw.map(x => renderRow(x.id, x.data)).join("");
+    }
+
+    function getRowById(id){
+      return cache.find(x => x.id === id) || null;
     }
 
     // Listener en tiempo real
@@ -691,9 +822,10 @@
         const updated = {};
         fields.forEach(el => updated[el.dataset.field] = (el.value ?? "").toString().trim());
 
-        updated.cond = updated.cond === "NO" ? "NO" : "SI";
-        updated.wis  = updated.wis  === "NO" ? "NO" : "SI";
-        updated.cierre  = updated.cierre === "NO" ? "NO" : "SI";
+        // ✅ fuerza SI/NO
+        updated.cond = (updated.cond === "NO") ? "NO" : "SI";
+        updated.wis  = (updated.wis  === "NO") ? "NO" : "SI";
+        updated.cierre  = (updated.cierre === "NO") ? "NO" : "SI";
 
         const empty =
           !updated.factura && !updated.division && !updated.transporte && !updated.carpeta &&
@@ -717,11 +849,51 @@
         return;
       }
 
-      if (action === "delete") {
-        if (!confirm("¿Seguro que querés eliminar esta fila?")) return;
+      // ✅ borrar adjunto individual
+      if (action === "delatt") {
+        const idx = Number(btn.dataset.attIdx);
+        if (Number.isNaN(idx)) return;
+
+        const row = getRowById(id);
+        const atts = row?.data?.attachments || [];
+        const att = atts[idx];
+        if (!att?.path) { alert("Adjunto inválido."); return; }
+
+        if (!confirm(`¿Borrar adjunto "${att.name}"?`)) return;
+
         try {
           btn.disabled = true;
+
+          // 1) borrar de Storage
+          await withTimeout(deleteObject(sRef(storage, att.path)), 15000);
+
+          // 2) actualizar Firestore (quita ese adjunto)
+          const next = atts.filter((_, i) => i !== idx);
+          await withTimeout(updateDoc(doc(db, "rows", id), {
+            attachments: next,
+            updatedAt: serverTimestamp()
+          }), 15000);
+
+          showToast("Adjunto borrado");
+        } catch (err) {
+          console.error(err);
+          showToast("No se pudo borrar adjunto", true);
+          alert("No se pudo borrar el adjunto (Storage/Reglas/Red).");
+        } finally {
+          btn.disabled = false;
+        }
+        return;
+      }
+
+      if (action === "delete") {
+        if (!confirm("¿Seguro que querés eliminar esta fila? (No borra adjuntos automáticamente)")) return;
+
+        try {
+          btn.disabled = true;
+
+          // (Opcional) Si querés borrar también adjuntos al eliminar la fila, decime y te lo agrego.
           await withTimeout(deleteDoc(doc(db, "rows", id)), 15000);
+
           if (editingRowId === id) editingRowId = null;
           showToast("Eliminado con éxito");
         } catch (err) {
