@@ -188,7 +188,7 @@
     }
     .footer b{color:var(--jd-green)}
 
-    /* -------------------- ✅ Adjuntos UI -------------------- */
+    /* Adjuntos UI */
     .attList{display:flex;flex-direction:column;gap:6px;margin-top:6px}
     .attItem{
       display:flex;gap:8px;align-items:center;justify-content:space-between;
@@ -200,37 +200,29 @@
     .attLinks{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
     a{color:#d9f1d3}
 
-    /* ✅ SOLO para la fila de alta: permitir que todo entre y Adjuntos quede visible */
+    /* Alta: que todo entre y Adjuntos visible al final (derecha) */
     .row-add{
       display:flex;
-      flex-wrap: nowrap;   /* una sola línea */
+      flex-wrap: nowrap;
       gap:10px;
       align-items:flex-end;
     }
-    .row-add > div{
-      flex: 0 1 auto;      /* permite encoger */
-      min-width: 0;        /* clave */
-    }
-    .row-add input,
-    .row-add select{
-      min-width: 120px;    /* antes 160 global */
-    }
+    .row-add > div{flex:0 1 auto; min-width:0;}
+    .row-add input, .row-add select{min-width:120px;}
     .row-add .w200{min-width:160px}
     .row-add .w140{min-width:120px}
     .row-add input[type="date"]{min-width:140px}
 
-    /* ✅ Adjuntos al final y SIEMPRE visible */
     .attWrap{
       margin-left:auto;
-      flex: 0 0 260px;      /* ancho fijo para asegurar visibilidad */
+      flex: 0 0 260px;
       max-width: 260px;
     }
 
-    /* ✅ Input file visible en oscuro */
     .row-add input[type="file"]{
-      min-width: 260px;
-      max-width: 260px;
-      padding: 8px 10px;
+      min-width:260px;
+      max-width:260px;
+      padding:8px 10px;
     }
     .row-add input[type="file"]::file-selector-button{
       padding:8px 10px;
@@ -242,11 +234,8 @@
       color: var(--text);
       margin-right:8px;
     }
-    .row-add input[type="file"]::file-selector-button:hover{
-      transform: translateY(-1px);
-    }
+    .row-add input[type="file"]::file-selector-button:hover{transform: translateY(-1px);}
 
-    /* ✅ Si la pantalla es chica, habilitamos scroll horizontal (sin romper) */
     @media (max-width: 1200px){
       .row-add{overflow-x:auto;padding-bottom:6px}
       .row-add::-webkit-scrollbar{height:8px}
@@ -331,7 +320,6 @@
     <div class="accentBar"></div>
     <h3>Agregar fila</h3>
 
-    <!-- ✅ row-add: una línea, adjuntos visibles al final -->
     <div class="row row-add">
       <div>
         <label>Factura</label>
@@ -387,7 +375,6 @@
         </select>
       </div>
 
-      <!-- ✅ Adjuntos al final (derecha) -->
       <div class="attWrap">
         <label>Adjuntos</label>
         <input id="adjuntos" type="file" multiple />
@@ -439,7 +426,7 @@
       apiKey: "PEGAR_TU_API_KEY",
       authDomain: "PEGAR_TU_AUTH_DOMAIN",
       projectId: "PEGAR_TU_PROJECT_ID",
-      storageBucket: "PEGAR_TU_STORAGE_BUCKET",
+      storageBucket: "PEGAR_TU_STORAGE_BUCKET",  // ej: "tu-proyecto.appspot.com"
       messagingSenderId: "PEGAR_TU_SENDER_ID",
       appId: "PEGAR_TU_APP_ID"
     };
@@ -466,7 +453,7 @@
       toastEl.classList.toggle("err", isError);
       toastEl.style.display = "block";
       clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => toastEl.style.display = "none", 2500);
+      showToast._t = setTimeout(() => toastEl.style.display = "none", 3000);
     }
 
     function escapeHtml(s){
@@ -671,7 +658,7 @@
       return uploaded;
     }
 
-    function renderAttachmentsCell(id, r){
+    function renderAttachmentsCell(r){
       const atts = r.attachments || [];
       if (!atts.length) return `<span class="muted">—</span>`;
       return `
@@ -686,7 +673,7 @@
       `;
     }
 
-    // ---- CRUD ----
+    // ---- CRUD: Agregar ----
     addBtn.addEventListener("click", async () => {
       const data = {
         factura: $("factura").value.trim(),
@@ -709,16 +696,23 @@
 
       if (empty) { alert("Ingresá al menos un dato o adjuntá un archivo para agregar."); return; }
 
+      addBtn.disabled = true;
+      msgEl.textContent = "Guardando...";
+
+      let rowId = null;
       try {
-        msgEl.textContent = "Guardando...";
-        addBtn.disabled = true;
-
+        // 1) Crear fila
         const docRef = await withTimeout(addDoc(collection(db, "rows"), data), 15000);
+        rowId = docRef.id;
 
+        // 2) Subir adjuntos
         if (selectedFiles.length){
           msgEl.textContent = "Subiendo adjuntos...";
-          const uploaded = await uploadAttachments(docRef.id, selectedFiles);
-          await withTimeout(updateDoc(doc(db, "rows", docRef.id), {
+          const uploaded = await uploadAttachments(rowId, selectedFiles);
+
+          // 3) Guardar metadata en la fila
+          msgEl.textContent = "Actualizando fila...";
+          await withTimeout(updateDoc(doc(db, "rows", rowId), {
             attachments: uploaded,
             updatedAt: serverTimestamp()
           }), 15000);
@@ -728,12 +722,19 @@
         clearAddForm();
         showToast("Agregado con éxito");
       } catch (e) {
-        console.error(e);
-        msgEl.textContent = "";
-        showToast("No se pudo guardar/subir", true);
-        alert("No se pudo guardar/subir. Revisá reglas/permisos (Firestore/Storage) o la red.");
+        console.error("ERROR agregar/subir:", e);
+
+        // Si se creó la fila pero falló adjuntos, lo avisamos claro
+        if (rowId && selectedFiles.length) {
+          showToast("Fila creada, pero NO se pudieron guardar los adjuntos (permisos).", true);
+          alert("La fila se creó, pero falló la subida/guardado de adjuntos.\nRevisá reglas de Storage/Firestore (permissions).");
+        } else {
+          showToast("No se pudo guardar. Revisá reglas/permisos o red.", true);
+          alert("No se pudo guardar. Revisá reglas/permisos (Firestore) o la red.");
+        }
       } finally {
         addBtn.disabled = false;
+        msgEl.textContent = "";
       }
     });
 
@@ -755,7 +756,7 @@
             <td>${escapeHtml(r.cond)}</td>
             <td>${escapeHtml(r.wis)}</td>
             <td>${escapeHtml(r.cierre)}</td>
-            <td>${renderAttachmentsCell(id, r)}</td>
+            <td>${renderAttachmentsCell(r)}</td>
             <td>
               <div class="actions">
                 <button class="small secondary" data-action="edit">Editar</button>
@@ -807,7 +808,7 @@
             </select>
           </td>
 
-          <td>${renderAttachmentsCell(id, r)}</td>
+          <td>${renderAttachmentsCell(r)}</td>
 
           <td>
             <div class="actions">
@@ -873,16 +874,16 @@
           showToast("Modificado con éxito");
           applyFilters();
         } catch (err) {
-          console.error(err);
-          showToast("No se pudo modificar", true);
-          alert("No se pudo modificar. Revisá reglas/permisos o red.");
+          console.error("ERROR updateDoc:", err);
+          showToast("No se pudo modificar (permisos).", true);
+          alert("No se pudo modificar. Revisá reglas/permisos de Firestore.");
         } finally {
           btn.disabled = false;
         }
         return;
       }
 
-      // ✅ borrar adjunto individual
+      // Borrar adjunto individual (Storage + Firestore)
       if (action === "delatt") {
         const idx = Number(btn.dataset.attIdx);
         if (Number.isNaN(idx)) return;
@@ -896,7 +897,6 @@
 
         try {
           btn.disabled = true;
-
           await withTimeout(deleteObject(sRef(storage, att.path)), 15000);
 
           const next = atts.filter((_, i) => i !== idx);
@@ -907,26 +907,41 @@
 
           showToast("Adjunto borrado");
         } catch (err) {
-          console.error(err);
-          showToast("No se pudo borrar adjunto", true);
-          alert("No se pudo borrar el adjunto (Storage/Reglas/Red).");
+          console.error("ERROR borrar adjunto:", err);
+          showToast("No se pudo borrar adjunto (permisos).", true);
+          alert("No se pudo borrar el adjunto. Revisá reglas/permisos de Storage/Firestore.");
         } finally {
           btn.disabled = false;
         }
         return;
       }
 
+      // Eliminar fila (ahora borra adjuntos también)
       if (action === "delete") {
-        if (!confirm("¿Seguro que querés eliminar esta fila? (No borra adjuntos automáticamente)")) return;
+        if (!confirm("¿Seguro que querés eliminar esta fila? (Borrará también los adjuntos)")) return;
+
+        const row = cache.find(x => x.id === id);
+        const atts = row?.data?.attachments || [];
+
         try {
           btn.disabled = true;
+
+          // 1) borrar adjuntos del storage
+          for (const a of atts) {
+            if (a?.path) {
+              await withTimeout(deleteObject(sRef(storage, a.path)), 15000);
+            }
+          }
+
+          // 2) borrar doc
           await withTimeout(deleteDoc(doc(db, "rows", id)), 15000);
+
           if (editingRowId === id) editingRowId = null;
           showToast("Eliminado con éxito");
         } catch (err) {
-          console.error(err);
-          showToast("No se pudo eliminar", true);
-          alert("No se pudo eliminar. Revisá reglas/permisos o red.");
+          console.error("ERROR delete:", err);
+          showToast("No se pudo eliminar (permisos).", true);
+          alert("No se pudo eliminar. Revisá reglas/permisos de Firestore/Storage.");
         } finally {
           btn.disabled = false;
         }
@@ -938,4 +953,3 @@
   </script>
 </body>
 </html>
-
