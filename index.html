@@ -252,24 +252,6 @@
 </head>
 
 <body>
-  <!-- LOGIN (simple) -->
-<div id="loginBox" style="
-  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
-  background:rgba(0,0,0,.65);backdrop-filter:blur(6px);z-index:9999;">
-  <div style="width:360px;max-width:92vw;padding:18px;border-radius:16px;
-              background:#141518;border:1px solid rgba(255,255,255,.12);color:#e7e9ee;">
-    <h3 style="margin:0 0 10px;font:900 14px system-ui;letter-spacing:.08em;text-transform:uppercase;">
-      Iniciar sesión
-    </h3>
-    <div style="display:grid;gap:10px">
-      <input id="email" placeholder="Email" style="padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:#101114;color:#e7e9ee;">
-      <input id="pass" type="password" placeholder="Contraseña" style="padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:#101114;color:#e7e9ee;">
-      <button id="loginBtn" style="padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
-        background:#3a5f32;color:#f2f6ef;font-weight:900;cursor:pointer;">Entrar</button>
-      <div id="loginMsg" style="font:600 12px system-ui;color:#a6adb8;"></div>
-    </div>
-  </div>
-</div>
 
   <div class="topbar">
     <h1 class="title"><span class="brandDot"></span> Carga de datos</h1>
@@ -413,24 +395,11 @@
   <div class="footer"><b>INTERAGROVIAL S.A</b></div>
 
   <script type="module">
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } 
-  from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-
-const auth = getAuth(app);
-
-// UI simple (podés hacerlo más lindo después)
-async function login(email, pass){
-  await signInWithEmailAndPassword(auth, email, pass);
-}
-
-onAuthStateChanged(auth, (user)=>{
-  if(!user){
-    alert("Tenés que iniciar sesión");
-    // acá podés mostrar un modal de login
-  } else {
-    console.log("Logueado:", user.email);
-  }
-});
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, doc, updateDoc, deleteDoc,
+      serverTimestamp, query, orderBy, onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
     // ✅ PEGÁ ACÁ TU CONFIG REAL (la que ya te funciona)
     // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -799,9 +768,6 @@ const firebaseConfig = {
   </script>
 </body>
 </html>
-
-
-
 
 
 
