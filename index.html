@@ -429,6 +429,12 @@
     import {
   getAuth, signInAnonymously, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+    import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDIGkNekvGn0XrqGvDAuutCBSglod03644",
@@ -929,5 +935,6 @@ onAuthStateChanged(auth, (user) => {
   </script>
 </body>
 </html>
+
 
 
