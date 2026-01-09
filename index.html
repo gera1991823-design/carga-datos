@@ -251,13 +251,14 @@
 </head>
 
 <body>
+
   <!-- LOGIN -->
   <div id="loginBox" class="card" style="max-width:420px;margin:80px auto;">
     <div class="accentBar"></div>
     <h3>Ingresar</h3>
 
     <label>Email</label>
-    <input id="loginEmail" type="email" placeholder="usuario@empresa.com"/>
+    <input id="loginEmail" type="email" placeholder="usuario@isa.com.uy"/>
 
     <label style="margin-top:10px">Contraseña</label>
     <input id="loginPass" type="password" placeholder="••••••••"/>
@@ -269,8 +270,8 @@
     <div id="loginError" class="toast err"></div>
   </div>
 
-  <!-- APP (OCULTA HASTA LOGIN) -->
-  <div id="appContent" style="display:none">
+  <!-- APP COMPLETA (OCULTA HASTA LOGIN) -->
+  <div id="appWrap" style="display:none">
 
     <div class="topbar">
       <h1 class="title"><span class="brandDot"></span> Carga de datos</h1>
@@ -342,7 +343,7 @@
         </div>
       </div>
 
-      <div class="muted">Los filtros se aplican automáticamente sobre la tabla. “Descargar Excel” exporta lo filtrado.</div>
+      <div class="muted">Los filtros se aplican automáticamente sobre la tabla.</div>
     </div>
 
     <!-- FORMULARIO AGREGAR -->
@@ -440,8 +441,7 @@
     </table>
 
     <div class="footer"><b>INTERAGROVIAL S.A</b></div>
-
-  </div><!-- /appContent -->
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
@@ -453,13 +453,16 @@
       getStorage, ref as sRef, uploadBytesResumable, getDownloadURL, deleteObject
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
     import {
-      getAuth,
-      signInWithEmailAndPassword,
-      signOut,
-      onAuthStateChanged
+      getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
-    // Firebase config
+    // ✅ SOLO ESTOS EMAILS ENTRAN
+    const ALLOWED_EMAILS = [
+      "gmorganti@isa.com.uy",
+      "alopez@isa.com.uy",
+      // agregá los que quieras...
+    ];
+
     const firebaseConfig = {
       apiKey: "AIzaSyDIGkNekvGn0XrqGvDAuutCBSglod03644",
       authDomain: "carpetas-17846.firebaseapp.com",
@@ -475,21 +478,21 @@
     const storage = getStorage(app);
     const auth = getAuth(app);
 
-    // Helpers DOM
     const $ = (id) => document.getElementById(id);
+
+    // UI login/app
+    const loginBox = $("loginBox");
+    const appWrap = $("appWrap");
+    const loginBtn = $("loginBtn");
+    const loginError = $("loginError");
+    const logoutBtn = $("logoutBtn");
+
+    // App elements
     const tbody = $("tbody");
     const msgEl = $("msg");
     const toastEl = $("toast");
     const addBtn = $("addBtn");
 
-    // Login UI
-    const loginBox = $("loginBox");
-    const appContent = $("appContent");
-    const loginBtn = $("loginBtn");
-    const loginError = $("loginError");
-    const logoutBtn = $("logoutBtn");
-
-    // State
     let editingRowId = null;
     let cache = [];
     let view = [];
@@ -518,9 +521,15 @@
     function safeYesNo(v){ return (v === "NO") ? "NO" : "SI"; }
     function uid(){ return (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`); }
 
-    // ===== LOGIN LOGIC =====
+    function isAllowedEmail(email){
+      const e = (email || "").toLowerCase().trim();
+      return ALLOWED_EMAILS.map(x => x.toLowerCase().trim()).includes(e);
+    }
+
+    // --- LOGIN ---
     loginBtn.addEventListener("click", async () => {
       loginError.style.display = "none";
+
       const email = $("loginEmail").value.trim();
       const pass  = $("loginPass").value;
 
@@ -530,30 +539,48 @@
         return;
       }
 
+      if (!isAllowedEmail(email)) {
+        loginError.textContent = "Usuario no habilitado";
+        loginError.style.display = "block";
+        return;
+      }
+
       try {
         await signInWithEmailAndPassword(auth, email, pass);
       } catch (e) {
         console.error("LOGIN ERROR:", e);
-        loginError.textContent = "Credenciales inválidas o usuario no habilitado";
+        loginError.textContent = "Credenciales inválidas";
         loginError.style.display = "block";
       }
     });
 
     logoutBtn.addEventListener("click", async () => {
-      try { await signOut(auth); } catch(e){ console.error(e); }
+      await signOut(auth);
     });
 
-    onAuthStateChanged(auth, (user) => {
+    // Mostrar/ocultar según auth
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
+        // ⚠️ si el usuario existe pero NO está permitido, lo saco
+        const email = user.email || "";
+        if (!isAllowedEmail(email)) {
+          await signOut(auth);
+          loginError.textContent = "Usuario no habilitado";
+          loginError.style.display = "block";
+          loginBox.style.display = "block";
+          appWrap.style.display = "none";
+          return;
+        }
+
         loginBox.style.display = "none";
-        appContent.style.display = "block";
+        appWrap.style.display = "block";
       } else {
         loginBox.style.display = "block";
-        appContent.style.display = "none";
+        appWrap.style.display = "none";
       }
     });
 
-    // ===== APP LOGIC =====
+    // --- ADJUNTOS (AGREGAR) ---
     function clearAddForm() {
       $("factura").value = "";
       $("division").value = "";
@@ -669,8 +696,7 @@
     });
 
     async function uploadOne(rowId, file){
-      const safeName = file.name.replace(/[^\w.\-() ]+/g, "_");
-      const path = `rows/${rowId}/${uid()}_${safeName}`;
+      const path = `rows/${rowId}/${uid()}_${file.name}`;
       const ref = sRef(storage, path);
       const task = uploadBytesResumable(ref, file);
 
@@ -827,7 +853,7 @@
             </select>
           </td>
 
-          <!-- Adjuntos + subir nuevos -->
+          <!-- ✅ Adjuntos + subir más en edición -->
           <td>
             ${renderAttachmentsCell(r)}
             <div style="margin-top:8px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
@@ -860,7 +886,7 @@
       applyFilters();
     }, (err) => {
       console.error(err);
-      showToast("No se pudo leer Firestore (¿logueado?)", true);
+      showToast("No se pudo leer Firestore", true);
     });
 
     tbody.addEventListener("click", async (e) => {
@@ -989,4 +1015,3 @@
   </script>
 </body>
 </html>
-
