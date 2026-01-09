@@ -256,13 +256,13 @@
     <div class="subpill">Estilo <b>Interagrovial</b> · verde/amarillo</div>
   </div>
 
-  <!-- FILTROS + EXPORT -->
+  <!-- FILTROS -->
   <div class="card">
     <div class="accentBar"></div>
     <div class="cardHeader">
       <h3>Filtros</h3>
       <div class="row" style="gap:8px">
-        <button id="exportBtn" class="primary" type="button">Descargar Excel</button>
+        <!-- ✅ Se quitó Descargar Excel -->
         <button id="clearFiltersBtn" class="secondary" type="button">Limpiar filtros</button>
       </div>
     </div>
@@ -308,17 +308,17 @@
       </div>
 
       <div>
-        <label>Fecha estimada desde</label>
+        <label>Fecha estimada UY desde</label>
         <input id="fDateFrom" type="date"/>
       </div>
 
       <div>
-        <label>Fecha estimada hasta</label>
+        <label>Fecha estimada UY hasta</label>
         <input id="fDateTo" type="date"/>
       </div>
     </div>
 
-    <div class="muted">Los filtros se aplican automáticamente sobre la tabla. “Descargar Excel” exporta lo filtrado.</div>
+    <div class="muted">Los filtros se aplican automáticamente sobre la tabla.</div>
   </div>
 
   <!-- FORMULARIO AGREGAR -->
@@ -348,13 +348,27 @@
       </div>
 
       <div>
-        <label>Fecha estimada</label>
+        <label>Fecha estimada UY</label>
         <input id="fecha_estimada" type="date" />
+      </div>
+
+      <!-- ✅ NUEVO -->
+      <div>
+        <label>Fecha depósito</label>
+        <input id="fecha_deposito" type="date" />
       </div>
 
       <div>
         <label>Orden de compra</label>
         <input id="oc" class="w140" inputmode="numeric" placeholder="Ej: 12004566"/>
+      </div>
+
+      <div>
+        <label>Cierre de carpeta</label>
+        <select id="cierre">
+          <option value="SI">SI</option>
+          <option value="NO">NO</option>
+        </select>
       </div>
 
       <div>
@@ -373,9 +387,10 @@
         </select>
       </div>
 
+      <!-- ✅ NUEVO -->
       <div>
-        <label>Cierre de carpeta</label>
-        <select id="cierre">
+        <label>Confirmación de llegada</label>
+        <select id="confirmacion_llegada">
           <option value="SI">SI</option>
           <option value="NO">NO</option>
         </select>
@@ -403,11 +418,18 @@
         <th>División</th>
         <th>Transporte</th>
         <th>Carpeta</th>
-        <th>Fecha estimada</th>
+        <th>Fecha estimada UY</th>
         <th>Orden compra</th>
+
+        <!-- ✅ ORDEN NUEVO -->
+        <th>Cierre carpeta</th>
         <th>Condiciones</th>
         <th>WIS</th>
-        <th>Cierre carpeta</th>
+
+        <!-- ✅ NUEVAS COLUMNAS -->
+        <th>Fecha depósito</th>
+        <th>Confirmación de llegada</th>
+
         <th>Adjuntos</th>
         <th>Acciones</th>
       </tr>
@@ -416,9 +438,6 @@
   </table>
 
   <div class="footer"><b>INTERAGROVIAL S.A</b></div>
-
-  <!-- SheetJS para exportar a Excel -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
@@ -484,10 +503,12 @@
       $("transporte").value = "";
       $("carpeta").value = "";
       $("fecha_estimada").value = "";
+      $("fecha_deposito").value = "";                 // ✅ nuevo
       $("oc").value = "";
+      $("cierre").value = "SI";
       $("cond").value = "SI";
       $("wis").value = "SI";
-      $("cierre").value = "SI";
+      $("confirmacion_llegada").value = "NO";         // ✅ nuevo (default NO)
 
       selectedFiles = [];
       $("adjuntos").value = "";
@@ -531,7 +552,10 @@
       const atts = (row.attachments || []).map(a => a?.name || "").join(" ");
       const hay = [
         row.factura, row.division, row.transporte, row.carpeta,
-        row.fecha_estimada, row.oc, row.cond, row.wis, row.cierre, atts
+        row.fecha_estimada, row.oc,
+        row.cierre, row.cond, row.wis,
+        row.fecha_deposito, row.confirmacion_llegada,
+        atts
       ].map(norm).join(" | ");
       return hay.includes(q);
     }
@@ -639,10 +663,15 @@
         transporte: $("transporte").value.trim(),
         carpeta: $("carpeta").value.trim(),
         fecha_estimada: $("fecha_estimada").value || "",
+        fecha_deposito: $("fecha_deposito").value || "",                   // ✅ nuevo
         oc: $("oc").value.trim(),
+
+        // ✅ orden lógico + nuevos campos
+        cierre: safeYesNo($("cierre").value),
         cond: safeYesNo($("cond").value),
         wis: safeYesNo($("wis").value),
-        cierre: safeYesNo($("cierre").value),
+        confirmacion_llegada: safeYesNo($("confirmacion_llegada").value),  // ✅ nuevo
+
         attachments: [],
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
@@ -650,7 +679,8 @@
 
       const empty =
         !data.factura && !data.division && !data.transporte && !data.carpeta &&
-        !data.fecha_estimada && !data.oc && !selectedFiles.length;
+        !data.fecha_estimada && !data.fecha_deposito && !data.oc &&
+        !selectedFiles.length;
 
       if (empty) { alert("Ingresá al menos un dato o adjuntá un archivo para agregar."); return; }
 
@@ -696,9 +726,16 @@
             <td>${escapeHtml(r.carpeta)}</td>
             <td>${escapeHtml(r.fecha_estimada)}</td>
             <td>${escapeHtml(r.oc)}</td>
+
+            <!-- ✅ ORDEN NUEVO -->
+            <td>${escapeHtml(r.cierre)}</td>
             <td>${escapeHtml(r.cond)}</td>
             <td>${escapeHtml(r.wis)}</td>
-            <td>${escapeHtml(r.cierre)}</td>
+
+            <!-- ✅ NUEVAS -->
+            <td>${escapeHtml(r.fecha_deposito)}</td>
+            <td>${escapeHtml(r.confirmacion_llegada)}</td>
+
             <td>${renderAttachmentsCell(r)}</td>
             <td>
               <div class="actions">
@@ -715,10 +752,13 @@
       const transporte = escapeHtml(r.transporte || "");
       const carpeta = escapeHtml(r.carpeta || "");
       const fecha_estimada = escapeHtml(r.fecha_estimada || "");
+      const fecha_deposito = escapeHtml(r.fecha_deposito || "");
       const oc = escapeHtml(r.oc || "");
+
+      const cierre = safeYesNo(r.cierre || "SI");
       const cond = safeYesNo(r.cond || "SI");
       const wis = safeYesNo(r.wis || "SI");
-      const cierre = safeYesNo(r.cierre || "SI");
+      const confirmacion_llegada = safeYesNo(r.confirmacion_llegada || "NO");
 
       return `
         <tr data-id="${id}">
@@ -727,8 +767,17 @@
           <td><input class="cell-input w200" data-field="division" value="${division}"></td>
           <td><input class="cell-input w200" data-field="transporte" value="${transporte}"></td>
           <td><input class="cell-input w140" data-field="carpeta" value="${carpeta}"></td>
+
           <td><input class="cell-input w160" type="date" data-field="fecha_estimada" value="${fecha_estimada}"></td>
           <td><input class="cell-input w140" data-field="oc" value="${oc}"></td>
+
+          <!-- ✅ ORDEN NUEVO -->
+          <td>
+            <select class="cell-input w110" data-field="cierre">
+              <option value="SI" ${cierre==="SI" ? "selected" : ""}>SI</option>
+              <option value="NO" ${cierre==="NO" ? "selected" : ""}>NO</option>
+            </select>
+          </td>
 
           <td>
             <select class="cell-input w110" data-field="cond">
@@ -744,10 +793,13 @@
             </select>
           </td>
 
+          <!-- ✅ NUEVAS -->
+          <td><input class="cell-input w160" type="date" data-field="fecha_deposito" value="${fecha_deposito}"></td>
+
           <td>
-            <select class="cell-input w110" data-field="cierre">
-              <option value="SI" ${cierre==="SI" ? "selected" : ""}>SI</option>
-              <option value="NO" ${cierre==="NO" ? "selected" : ""}>NO</option>
+            <select class="cell-input w160" data-field="confirmacion_llegada">
+              <option value="SI" ${confirmacion_llegada==="SI" ? "selected" : ""}>SI</option>
+              <option value="NO" ${confirmacion_llegada==="NO" ? "selected" : ""}>NO</option>
             </select>
           </td>
 
@@ -769,52 +821,6 @@
       tbody.innerHTML = dataToDraw.map(x => renderRow(x.id, x.data)).join("");
     }
 
-    // === EXPORT A EXCEL (XLSX) ===
-    function exportToExcel(){
-      const rows = (view.length ? view : cache).map(x => x.data);
-
-      if (!rows.length){
-        showToast("No hay datos para exportar", true);
-        return;
-      }
-
-      const data = rows.map(r => {
-        const atts = (r.attachments || []);
-        return {
-          "Fecha carga": r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : "",
-          "Factura": r.factura || "",
-          "División": r.division || "",
-          "Transporte": r.transporte || "",
-          "Carpeta": r.carpeta || "",
-          "Fecha estimada": r.fecha_estimada || "",
-          "Orden compra": r.oc || "",
-          "Condiciones": r.cond || "",
-          "WIS": r.wis || "",
-          "Cierre carpeta": r.cierre || "",
-          "Adjuntos (nombres)": atts.map(a => a?.name).filter(Boolean).join(" | "),
-          "Adjuntos (links)": atts.map(a => a?.url).filter(Boolean).join(" | ")
-        };
-      });
-
-      const ws = XLSX.utils.json_to_sheet(data);
-
-      const keys = Object.keys(data[0]);
-      ws["!cols"] = keys.map(k => {
-        const maxLen = Math.max(k.length, ...data.map(row => String(row[k] ?? "").length));
-        return { wch: Math.min(Math.max(maxLen + 2, 12), 60) };
-      });
-
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Carpetas");
-
-      const today = new Date().toISOString().slice(0,10);
-      XLSX.writeFile(wb, `carpetas_${today}.xlsx`);
-    }
-
-    // Enganchar el botón export UNA SOLA VEZ
-    $("exportBtn").addEventListener("click", exportToExcel);
-
-    // === FIRESTORE LISTENER ===
     const qSnap = query(collection(db, "rows"), orderBy("createdAt", "desc"));
     onSnapshot(qSnap, (snap) => {
       cache = [];
@@ -844,9 +850,10 @@
         const updated = {};
         fields.forEach(el => updated[el.dataset.field] = (el.value ?? "").toString().trim());
 
+        updated.cierre = safeYesNo(updated.cierre);
         updated.cond = safeYesNo(updated.cond);
         updated.wis  = safeYesNo(updated.wis);
-        updated.cierre  = safeYesNo(updated.cierre);
+        updated.confirmacion_llegada = safeYesNo(updated.confirmacion_llegada);
 
         try {
           btn.disabled = true;
@@ -920,3 +927,6 @@
   </script>
 </body>
 </html>
+
+
+
