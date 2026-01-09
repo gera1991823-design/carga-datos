@@ -427,21 +427,18 @@
       getStorage, ref as sRef, uploadBytesResumable, getDownloadURL, deleteObject
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
 
-    // ✅ PEGA ACÁ EL CONFIG COMPLETO (Project settings -> SDK config)
-   const firebaseConfig = {
-  apiKey: "AIzaSyDIGkNekvGn0XrqGvDAuutCBSglod03644",
-  authDomain: "carpetas-17846.firebaseapp.com",
-  projectId: "carpetas-17846",
-  storageBucket: "carpetas-17846.firebasestorage.app", // 🔥 ESTE ES EL CAMBIO
-  messagingSenderId: "513234224676",
-  appId: "1:513234224676:web:a61b7ab9685594d1b5bab1",
-  measurementId: "G-8Z18FTM0L6"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyDIGkNekvGn0XrqGvDAuutCBSglod03644",
+      authDomain: "carpetas-17846.firebaseapp.com",
+      projectId: "carpetas-17846",
+      storageBucket: "carpetas-17846.firebasestorage.app",
+      messagingSenderId: "513234224676",
+      appId: "1:513234224676:web:a61b7ab9685594d1b5bab1",
+      measurementId: "G-8Z18FTM0L6"
+    };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
-    // ✅ Fuerzo bucket explícito (evita “bucket equivocado”)
     const storage = getStorage(app);
 
     const $ = (id) => document.getElementById(id);
@@ -595,8 +592,6 @@
     async function uploadOne(rowId, file){
       const path = `rows/${rowId}/${uid()}_${file.name}`;
       const ref = sRef(storage, path);
-
-      // ✅ resumable: no queda “colgado”, devuelve error real
       const task = uploadBytesResumable(ref, file);
 
       await new Promise((resolve, reject) => {
@@ -752,7 +747,14 @@
             </select>
           </td>
 
-          <td>${renderAttachmentsCell(r)}</td>
+          <!-- ✅ CAMBIO: UI para subir más adjuntos en edición -->
+          <td>
+            ${renderAttachmentsCell(r)}
+            <div style="margin-top:8px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+              <input type="file" multiple data-edit-files style="max-width:260px"/>
+              <button class="small secondary" type="button" data-action="upload">Subir adjuntos</button>
+            </div>
+          </td>
 
           <td>
             <div class="actions">
@@ -793,6 +795,39 @@
 
       if (action === "edit") { editingRowId = id; draw(); return; }
       if (action === "cancel") { editingRowId = null; draw(); return; }
+
+      // ✅ CAMBIO: subir adjuntos a una fila existente
+      if (action === "upload") {
+        const row = cache.find(x => x.id === id);
+        const currentAtts = row?.data?.attachments || [];
+
+        const fileInput = tr.querySelector('input[type="file"][data-edit-files]');
+        const files = Array.from(fileInput?.files || []);
+
+        if (!files.length) { alert("Elegí uno o más archivos para subir."); return; }
+
+        try {
+          btn.disabled = true;
+          msgEl.textContent = "Subiendo adjuntos...";
+
+          const uploaded = await uploadAttachments(id, files);
+          const next = currentAtts.concat(uploaded);
+
+          await updateDoc(doc(db, "rows", id), { attachments: next, updatedAt: serverTimestamp() });
+
+          msgEl.textContent = "";
+          fileInput.value = "";
+          showToast("Adjuntos subidos");
+        } catch (err) {
+          console.error(err);
+          showToast(`Error: ${errText(err)}`, true);
+          alert(errText(err));
+        } finally {
+          btn.disabled = false;
+          msgEl.textContent = "";
+        }
+        return;
+      }
 
       if (action === "save") {
         const fields = tr.querySelectorAll("[data-field]");
@@ -875,6 +910,3 @@
   </script>
 </body>
 </html>
-
-
-
