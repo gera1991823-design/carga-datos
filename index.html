@@ -417,6 +417,7 @@
 
   <div class="footer"><b>INTERAGROVIAL S.A</b></div>
 
+  <!-- SheetJS para exportar a Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script type="module">
@@ -429,21 +430,18 @@
       getStorage, ref as sRef, uploadBytesResumable, getDownloadURL, deleteObject
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
 
-    // ✅ PEGA ACÁ EL CONFIG COMPLETO (Project settings -> SDK config)
-   const firebaseConfig = {
-  apiKey: "AIzaSyDIGkNekvGn0XrqGvDAuutCBSglod03644",
-  authDomain: "carpetas-17846.firebaseapp.com",
-  projectId: "carpetas-17846",
-  storageBucket: "carpetas-17846.firebasestorage.app", // 🔥 ESTE ES EL CAMBIO
-  messagingSenderId: "513234224676",
-  appId: "1:513234224676:web:a61b7ab9685594d1b5bab1",
-  measurementId: "G-8Z18FTM0L6"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyDIGkNekvGn0XrqGvDAuutCBSglod03644",
+      authDomain: "carpetas-17846.firebaseapp.com",
+      projectId: "carpetas-17846",
+      storageBucket: "carpetas-17846.firebasestorage.app",
+      messagingSenderId: "513234224676",
+      appId: "1:513234224676:web:a61b7ab9685594d1b5bab1",
+      measurementId: "G-8Z18FTM0L6"
+    };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
-    // ✅ Fuerzo bucket explícito (evita “bucket equivocado”)
     const storage = getStorage(app);
 
     const $ = (id) => document.getElementById(id);
@@ -490,54 +488,6 @@
       $("cond").value = "SI";
       $("wis").value = "SI";
       $("cierre").value = "SI";
-function exportToExcel(){
-  // Si hay filtros activos, "view" tendrá filas; si no, usamos "cache"
-  const rows = (view.length ? view : cache).map(x => x.data);
-
-  if (!rows.length){
-    showToast("No hay datos para exportar", true);
-    return;
-  }
-
-  const data = rows.map(r => {
-    const atts = (r.attachments || []);
-    return {
-      "Fecha carga": r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : "",
-      "Factura": r.factura || "",
-      "División": r.division || "",
-      "Transporte": r.transporte || "",
-      "Carpeta": r.carpeta || "",
-      "Fecha estimada": r.fecha_estimada || "",
-      "Orden compra": r.oc || "",
-      "Condiciones": r.cond || "",
-      "WIS": r.wis || "",
-      "Cierre carpeta": r.cierre || "",
-      "Adjuntos (nombres)": atts.map(a => a?.name).filter(Boolean).join(" | "),
-      "Adjuntos (links)": atts.map(a => a?.url).filter(Boolean).join(" | ")
-    };
-  });
-
-  // SheetJS: JSON -> hoja -> libro
-  const ws = XLSX.utils.json_to_sheet(data);
-
-  // Auto-ancho de columnas (simple)
-  const keys = Object.keys(data[0]);
-  ws["!cols"] = keys.map(k => {
-    const maxLen = Math.max(
-      k.length,
-      ...data.map(row => String(row[k] ?? "").length)
-    );
-    return { wch: Math.min(Math.max(maxLen + 2, 12), 60) };
-  });
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Carpetas");
-
-  const today = new Date().toISOString().slice(0,10);
-  XLSX.writeFile(wb, `carpetas_${today}.xlsx`);
-}
-
-$("exportBtn").addEventListener("click", exportToExcel);
 
       selectedFiles = [];
       $("adjuntos").value = "";
@@ -646,7 +596,6 @@ $("exportBtn").addEventListener("click", exportToExcel);
       const path = `rows/${rowId}/${uid()}_${file.name}`;
       const ref = sRef(storage, path);
 
-      // ✅ resumable: no queda “colgado”, devuelve error real
       const task = uploadBytesResumable(ref, file);
 
       await new Promise((resolve, reject) => {
@@ -820,6 +769,52 @@ $("exportBtn").addEventListener("click", exportToExcel);
       tbody.innerHTML = dataToDraw.map(x => renderRow(x.id, x.data)).join("");
     }
 
+    // === EXPORT A EXCEL (XLSX) ===
+    function exportToExcel(){
+      const rows = (view.length ? view : cache).map(x => x.data);
+
+      if (!rows.length){
+        showToast("No hay datos para exportar", true);
+        return;
+      }
+
+      const data = rows.map(r => {
+        const atts = (r.attachments || []);
+        return {
+          "Fecha carga": r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : "",
+          "Factura": r.factura || "",
+          "División": r.division || "",
+          "Transporte": r.transporte || "",
+          "Carpeta": r.carpeta || "",
+          "Fecha estimada": r.fecha_estimada || "",
+          "Orden compra": r.oc || "",
+          "Condiciones": r.cond || "",
+          "WIS": r.wis || "",
+          "Cierre carpeta": r.cierre || "",
+          "Adjuntos (nombres)": atts.map(a => a?.name).filter(Boolean).join(" | "),
+          "Adjuntos (links)": atts.map(a => a?.url).filter(Boolean).join(" | ")
+        };
+      });
+
+      const ws = XLSX.utils.json_to_sheet(data);
+
+      const keys = Object.keys(data[0]);
+      ws["!cols"] = keys.map(k => {
+        const maxLen = Math.max(k.length, ...data.map(row => String(row[k] ?? "").length));
+        return { wch: Math.min(Math.max(maxLen + 2, 12), 60) };
+      });
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Carpetas");
+
+      const today = new Date().toISOString().slice(0,10);
+      XLSX.writeFile(wb, `carpetas_${today}.xlsx`);
+    }
+
+    // Enganchar el botón export UNA SOLA VEZ
+    $("exportBtn").addEventListener("click", exportToExcel);
+
+    // === FIRESTORE LISTENER ===
     const qSnap = query(collection(db, "rows"), orderBy("createdAt", "desc"));
     onSnapshot(qSnap, (snap) => {
       cache = [];
@@ -925,6 +920,3 @@ $("exportBtn").addEventListener("click", exportToExcel);
   </script>
 </body>
 </html>
-
-
-
