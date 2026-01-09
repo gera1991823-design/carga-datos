@@ -417,6 +417,8 @@
 
   <div class="footer"><b>INTERAGROVIAL S.A</b></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
     import {
@@ -488,6 +490,54 @@
       $("cond").value = "SI";
       $("wis").value = "SI";
       $("cierre").value = "SI";
+function exportToExcel(){
+  // Si hay filtros activos, "view" tendrá filas; si no, usamos "cache"
+  const rows = (view.length ? view : cache).map(x => x.data);
+
+  if (!rows.length){
+    showToast("No hay datos para exportar", true);
+    return;
+  }
+
+  const data = rows.map(r => {
+    const atts = (r.attachments || []);
+    return {
+      "Fecha carga": r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : "",
+      "Factura": r.factura || "",
+      "División": r.division || "",
+      "Transporte": r.transporte || "",
+      "Carpeta": r.carpeta || "",
+      "Fecha estimada": r.fecha_estimada || "",
+      "Orden compra": r.oc || "",
+      "Condiciones": r.cond || "",
+      "WIS": r.wis || "",
+      "Cierre carpeta": r.cierre || "",
+      "Adjuntos (nombres)": atts.map(a => a?.name).filter(Boolean).join(" | "),
+      "Adjuntos (links)": atts.map(a => a?.url).filter(Boolean).join(" | ")
+    };
+  });
+
+  // SheetJS: JSON -> hoja -> libro
+  const ws = XLSX.utils.json_to_sheet(data);
+
+  // Auto-ancho de columnas (simple)
+  const keys = Object.keys(data[0]);
+  ws["!cols"] = keys.map(k => {
+    const maxLen = Math.max(
+      k.length,
+      ...data.map(row => String(row[k] ?? "").length)
+    );
+    return { wch: Math.min(Math.max(maxLen + 2, 12), 60) };
+  });
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Carpetas");
+
+  const today = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `carpetas_${today}.xlsx`);
+}
+
+$("exportBtn").addEventListener("click", exportToExcel);
 
       selectedFiles = [];
       $("adjuntos").value = "";
@@ -875,5 +925,6 @@
   </script>
 </body>
 </html>
+
 
 
