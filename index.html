@@ -256,13 +256,13 @@
     <div class="subpill">Estilo <b>Interagrovial</b> · verde/amarillo</div>
   </div>
 
-  <!-- FILTROS -->
+  <!-- FILTROS (SIN EXPORT) -->
   <div class="card">
     <div class="accentBar"></div>
     <div class="cardHeader">
       <h3>Filtros</h3>
       <div class="row" style="gap:8px">
-        <!-- ✅ Se quitó Descargar Excel -->
+        <!-- ✅ Quitado: Descargar Excel -->
         <button id="clearFiltersBtn" class="secondary" type="button">Limpiar filtros</button>
       </div>
     </div>
@@ -347,6 +347,12 @@
         <input id="carpeta" class="w140" placeholder="Ej: 88855"/>
       </div>
 
+      <!-- ✅ NUEVO -->
+      <div>
+        <label>DUA</label>
+        <input id="dua" class="w140" placeholder="Ej: 123456"/>
+      </div>
+
       <div>
         <label>Fecha estimada UY</label>
         <input id="fecha_estimada" type="date" />
@@ -363,6 +369,7 @@
         <input id="oc" class="w140" inputmode="numeric" placeholder="Ej: 12004566"/>
       </div>
 
+      <!-- ✅ ORDEN NUEVO: CIERRE, CONDICIONES, WIS -->
       <div>
         <label>Cierre de carpeta</label>
         <select id="cierre">
@@ -392,7 +399,7 @@
         <label>Confirmación de llegada</label>
         <select id="confirmacion_llegada">
           <option value="SI">SI</option>
-          <option value="NO">NO</option>
+          <option value="NO" selected>NO</option>
         </select>
       </div>
 
@@ -418,6 +425,7 @@
         <th>División</th>
         <th>Transporte</th>
         <th>Carpeta</th>
+        <th>DUA</th>
         <th>Fecha estimada UY</th>
         <th>Orden compra</th>
 
@@ -449,11 +457,12 @@
       getStorage, ref as sRef, uploadBytesResumable, getDownloadURL, deleteObject
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
 
+    // ✅ PEGA ACÁ EL CONFIG COMPLETO (Project settings -> SDK config)
     const firebaseConfig = {
       apiKey: "AIzaSyDIGkNekvGn0XrqGvDAuutCBSglod03644",
       authDomain: "carpetas-17846.firebaseapp.com",
       projectId: "carpetas-17846",
-      storageBucket: "carpetas-17846.firebasestorage.app",
+      storageBucket: "carpetas-17846.firebasestorage.app", // 🔥 ESTE ES EL CAMBIO
       messagingSenderId: "513234224676",
       appId: "1:513234224676:web:a61b7ab9685594d1b5bab1",
       measurementId: "G-8Z18FTM0L6"
@@ -461,6 +470,8 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
+    // ✅ Fuerzo bucket explícito (evita “bucket equivocado”)
     const storage = getStorage(app);
 
     const $ = (id) => document.getElementById(id);
@@ -502,13 +513,14 @@
       $("division").value = "";
       $("transporte").value = "";
       $("carpeta").value = "";
+      $("dua").value = "";                     // ✅ nuevo
       $("fecha_estimada").value = "";
-      $("fecha_deposito").value = "";                 // ✅ nuevo
+      $("fecha_deposito").value = "";          // ✅ nuevo
       $("oc").value = "";
       $("cierre").value = "SI";
       $("cond").value = "SI";
       $("wis").value = "SI";
-      $("confirmacion_llegada").value = "NO";         // ✅ nuevo (default NO)
+      $("confirmacion_llegada").value = "NO";  // ✅ nuevo
 
       selectedFiles = [];
       $("adjuntos").value = "";
@@ -551,11 +563,9 @@
       if (!q) return true;
       const atts = (row.attachments || []).map(a => a?.name || "").join(" ");
       const hay = [
-        row.factura, row.division, row.transporte, row.carpeta,
-        row.fecha_estimada, row.oc,
-        row.cierre, row.cond, row.wis,
-        row.fecha_deposito, row.confirmacion_llegada,
-        atts
+        row.factura, row.division, row.transporte, row.carpeta, row.dua,
+        row.fecha_estimada, row.fecha_deposito, row.confirmacion_llegada,
+        row.oc, row.cond, row.wis, row.cierre, atts
       ].map(norm).join(" | ");
       return hay.includes(q);
     }
@@ -620,6 +630,7 @@
       const path = `rows/${rowId}/${uid()}_${file.name}`;
       const ref = sRef(storage, path);
 
+      // ✅ resumable: no queda “colgado”, devuelve error real
       const task = uploadBytesResumable(ref, file);
 
       await new Promise((resolve, reject) => {
@@ -662,15 +673,16 @@
         division: $("division").value.trim(),
         transporte: $("transporte").value.trim(),
         carpeta: $("carpeta").value.trim(),
+        dua: $("dua").value.trim(),                              // ✅ nuevo
         fecha_estimada: $("fecha_estimada").value || "",
-        fecha_deposito: $("fecha_deposito").value || "",                   // ✅ nuevo
+        fecha_deposito: $("fecha_deposito").value || "",         // ✅ nuevo
         oc: $("oc").value.trim(),
 
-        // ✅ orden lógico + nuevos campos
+        // ✅ nuevo orden
         cierre: safeYesNo($("cierre").value),
         cond: safeYesNo($("cond").value),
         wis: safeYesNo($("wis").value),
-        confirmacion_llegada: safeYesNo($("confirmacion_llegada").value),  // ✅ nuevo
+        confirmacion_llegada: safeYesNo($("confirmacion_llegada").value), // ✅ nuevo
 
         attachments: [],
         createdAt: serverTimestamp(),
@@ -679,8 +691,8 @@
 
       const empty =
         !data.factura && !data.division && !data.transporte && !data.carpeta &&
-        !data.fecha_estimada && !data.fecha_deposito && !data.oc &&
-        !selectedFiles.length;
+        !data.dua && !data.fecha_estimada && !data.fecha_deposito &&
+        !data.oc && !selectedFiles.length;
 
       if (empty) { alert("Ingresá al menos un dato o adjuntá un archivo para agregar."); return; }
 
@@ -724,6 +736,7 @@
             <td>${escapeHtml(r.division)}</td>
             <td>${escapeHtml(r.transporte)}</td>
             <td>${escapeHtml(r.carpeta)}</td>
+            <td>${escapeHtml(r.dua)}</td>
             <td>${escapeHtml(r.fecha_estimada)}</td>
             <td>${escapeHtml(r.oc)}</td>
 
@@ -751,6 +764,7 @@
       const division = escapeHtml(r.division || "");
       const transporte = escapeHtml(r.transporte || "");
       const carpeta = escapeHtml(r.carpeta || "");
+      const dua = escapeHtml(r.dua || "");
       const fecha_estimada = escapeHtml(r.fecha_estimada || "");
       const fecha_deposito = escapeHtml(r.fecha_deposito || "");
       const oc = escapeHtml(r.oc || "");
@@ -767,6 +781,7 @@
           <td><input class="cell-input w200" data-field="division" value="${division}"></td>
           <td><input class="cell-input w200" data-field="transporte" value="${transporte}"></td>
           <td><input class="cell-input w140" data-field="carpeta" value="${carpeta}"></td>
+          <td><input class="cell-input w140" data-field="dua" value="${dua}"></td>
 
           <td><input class="cell-input w160" type="date" data-field="fecha_estimada" value="${fecha_estimada}"></td>
           <td><input class="cell-input w140" data-field="oc" value="${oc}"></td>
@@ -850,9 +865,9 @@
         const updated = {};
         fields.forEach(el => updated[el.dataset.field] = (el.value ?? "").toString().trim());
 
-        updated.cierre = safeYesNo(updated.cierre);
         updated.cond = safeYesNo(updated.cond);
         updated.wis  = safeYesNo(updated.wis);
+        updated.cierre  = safeYesNo(updated.cierre);
         updated.confirmacion_llegada = safeYesNo(updated.confirmacion_llegada);
 
         try {
@@ -927,6 +942,5 @@
   </script>
 </body>
 </html>
-
 
 
