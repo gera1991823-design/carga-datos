@@ -222,13 +222,13 @@
 
     .attWrap{
       margin-left:auto;
-      flex: 0 0 270px;
-      max-width: 270px;
+      flex: 0 0 300px;
+      max-width: 300px;
     }
 
     .row-add input[type="file"]{
-      min-width:270px;
-      max-width:270px;
+      min-width:300px;
+      max-width:300px;
       padding:8px 10px;
     }
     .row-add input[type="file"]::file-selector-button{
@@ -240,6 +240,12 @@
       font-weight:900;
       color: var(--text);
       margin-right:8px;
+    }
+
+    .excelWrap{
+      margin-left:auto;
+      flex: 0 0 300px;
+      max-width: 300px;
     }
 
     @media (max-width: 1200px){
@@ -262,7 +268,6 @@
     <div class="cardHeader">
       <h3>Filtros</h3>
       <div class="row" style="gap:8px">
-        <!-- ✅ Quitado: Descargar Excel -->
         <button id="clearFiltersBtn" class="secondary" type="button">Limpiar filtros</button>
       </div>
     </div>
@@ -347,7 +352,6 @@
         <input id="carpeta" class="w140" placeholder="Ej: 88855"/>
       </div>
 
-      <!-- ✅ NUEVO -->
       <div>
         <label>DUA</label>
         <input id="dua" class="w140" placeholder="Ej: 123456"/>
@@ -358,7 +362,6 @@
         <input id="fecha_estimada" type="date" />
       </div>
 
-      <!-- ✅ NUEVO -->
       <div>
         <label>Fecha depósito</label>
         <input id="fecha_deposito" type="date" />
@@ -369,7 +372,6 @@
         <input id="oc" class="w140" inputmode="numeric" placeholder="Ej: 12004566"/>
       </div>
 
-      <!-- ✅ ORDEN NUEVO: CIERRE, CONDICIONES, WIS -->
       <div>
         <label>Cierre de carpeta</label>
         <select id="cierre">
@@ -394,13 +396,23 @@
         </select>
       </div>
 
-      <!-- ✅ NUEVO -->
       <div>
         <label>Confirmación de llegada</label>
         <select id="confirmacion_llegada">
           <option value="SI">SI</option>
           <option value="NO" selected>NO</option>
         </select>
+      </div>
+
+      <!-- ✅ NUEVO: EXCEL por fila -->
+      <div class="excelWrap">
+        <label>Excel (1 archivo .xls/.xlsx)</label>
+        <input
+          id="excel_file"
+          type="file"
+          accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        />
+        <div id="excelPreview" class="attList"></div>
       </div>
 
       <div class="attWrap">
@@ -416,6 +428,14 @@
     <div id="toast" class="toast"></div>
   </div>
 
+  <!-- input oculto para subir/reemplazar excel desde una fila -->
+  <input
+    id="excelRowPicker"
+    type="file"
+    accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    style="display:none"
+  />
+
   <!-- TABLA -->
   <table>
     <thead>
@@ -429,14 +449,15 @@
         <th>Fecha estimada UY</th>
         <th>Orden compra</th>
 
-        <!-- ✅ ORDEN NUEVO -->
         <th>Cierre carpeta</th>
         <th>Condiciones</th>
         <th>WIS</th>
 
-        <!-- ✅ NUEVAS COLUMNAS -->
         <th>Fecha depósito</th>
         <th>Confirmación de llegada</th>
+
+        <!-- ✅ NUEVO -->
+        <th>Excel</th>
 
         <th>Adjuntos</th>
         <th>Acciones</th>
@@ -457,12 +478,11 @@
       getStorage, ref as sRef, uploadBytesResumable, getDownloadURL, deleteObject
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
 
-    // ✅ PEGA ACÁ EL CONFIG COMPLETO (Project settings -> SDK config)
     const firebaseConfig = {
       apiKey: "AIzaSyDIGkNekvGn0XrqGvDAuutCBSglod03644",
       authDomain: "carpetas-17846.firebaseapp.com",
       projectId: "carpetas-17846",
-      storageBucket: "carpetas-17846.firebasestorage.app", // 🔥 ESTE ES EL CAMBIO
+      storageBucket: "carpetas-17846.firebasestorage.app",
       messagingSenderId: "513234224676",
       appId: "1:513234224676:web:a61b7ab9685594d1b5bab1",
       measurementId: "G-8Z18FTM0L6"
@@ -470,8 +490,6 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
-    // ✅ Fuerzo bucket explícito (evita “bucket equivocado”)
     const storage = getStorage(app);
 
     const $ = (id) => document.getElementById(id);
@@ -484,6 +502,8 @@
     let cache = [];
     let view = [];
     let selectedFiles = [];
+    let selectedExcelFile = null;         // ✅ nuevo
+    let pendingExcelRowId = null;         // ✅ nuevo
 
     function showToast(text, isError=false){
       toastEl.textContent = text;
@@ -508,19 +528,49 @@
     function safeYesNo(v){ return (v === "NO") ? "NO" : "SI"; }
     function uid(){ return (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`); }
 
+    function isExcelFile(file){
+      if (!file) return false;
+      const name = (file.name || "").toLowerCase();
+      return name.endsWith(".xls") || name.endsWith(".xlsx");
+    }
+
+    function renderExcelPreview(){
+      const wrap = $("excelPreview");
+      if (!selectedExcelFile){
+        wrap.innerHTML = `<div class="muted">Sin excel.</div>`;
+        return;
+      }
+      wrap.innerHTML = `
+        <div class="attItem">
+          <div class="attName">${escapeHtml(selectedExcelFile.name)} (${Math.round(selectedExcelFile.size/1024)} KB)</div>
+          <button class="small danger" type="button" id="removeExcelBtn">Quitar</button>
+        </div>
+      `;
+      $("removeExcelBtn").addEventListener("click", () => {
+        selectedExcelFile = null;
+        $("excel_file").value = "";
+        renderExcelPreview();
+      });
+    }
+
     function clearAddForm() {
       $("factura").value = "";
       $("division").value = "";
       $("transporte").value = "";
       $("carpeta").value = "";
-      $("dua").value = "";                     // ✅ nuevo
+      $("dua").value = "";
       $("fecha_estimada").value = "";
-      $("fecha_deposito").value = "";          // ✅ nuevo
+      $("fecha_deposito").value = "";
       $("oc").value = "";
       $("cierre").value = "SI";
       $("cond").value = "SI";
       $("wis").value = "SI";
-      $("confirmacion_llegada").value = "NO";  // ✅ nuevo
+      $("confirmacion_llegada").value = "NO";
+
+      // ✅ limpiar excel
+      selectedExcelFile = null;
+      $("excel_file").value = "";
+      renderExcelPreview();
 
       selectedFiles = [];
       $("adjuntos").value = "";
@@ -557,15 +607,36 @@
       renderAttPreview();
     });
 
+    // ✅ Excel input (solo 1 archivo)
+    $("excel_file").addEventListener("change", (e) => {
+      const f = (e.target.files || [])[0];
+      if (!f){
+        selectedExcelFile = null;
+        renderExcelPreview();
+        return;
+      }
+      if (!isExcelFile(f)){
+        alert("Solo se permite Excel (.xls o .xlsx).");
+        $("excel_file").value = "";
+        selectedExcelFile = null;
+        renderExcelPreview();
+        return;
+      }
+      selectedExcelFile = f;
+      renderExcelPreview();
+    });
+
     function norm(s){ return (s ?? "").toString().trim().toLowerCase(); }
 
     function matchesText(row, q){
       if (!q) return true;
       const atts = (row.attachments || []).map(a => a?.name || "").join(" ");
+      const excelName = row.excelAttachment?.name || "";
       const hay = [
         row.factura, row.division, row.transporte, row.carpeta, row.dua,
         row.fecha_estimada, row.fecha_deposito, row.confirmacion_llegada,
-        row.oc, row.cond, row.wis, row.cierre, atts
+        row.oc, row.cond, row.wis, row.cierre,
+        excelName, atts
       ].map(norm).join(" | ");
       return hay.includes(q);
     }
@@ -627,10 +698,9 @@
     });
 
     async function uploadOne(rowId, file){
-      const path = `rows/${rowId}/${uid()}_${file.name}`;
+      const path = `rows/${rowId}/attachments/${uid()}_${file.name}`;
       const ref = sRef(storage, path);
 
-      // ✅ resumable: no queda “colgado”, devuelve error real
       const task = uploadBytesResumable(ref, file);
 
       await new Promise((resolve, reject) => {
@@ -654,6 +724,27 @@
       return out;
     }
 
+    // ✅ NUEVO: subir excel (1 por fila)
+    async function uploadExcel(rowId, file){
+      const path = `rows/${rowId}/excel/${uid()}_${file.name}`;
+      const ref = sRef(storage, path);
+      const task = uploadBytesResumable(ref, file);
+
+      await new Promise((resolve, reject) => {
+        task.on("state_changed",
+          (snap) => {
+            const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+            msgEl.textContent = `Subiendo excel... ${pct}%`;
+          },
+          (err) => reject(err),
+          () => resolve()
+        );
+      });
+
+      const url = await getDownloadURL(ref);
+      return { name: file.name, path, url, size: file.size };
+    }
+
     function renderAttachmentsCell(r){
       const atts = r.attachments || [];
       if (!atts.length) return `<span class="muted">—</span>`;
@@ -667,22 +758,45 @@
       `;
     }
 
+    function renderExcelCell(id, r){
+      const ex = r.excelAttachment;
+      if (!ex?.url){
+        return `
+          <span class="muted">—</span>
+          <div style="margin-top:6px">
+            <button class="small secondary" data-action="upexcel" data-id="${id}">Subir Excel</button>
+          </div>
+        `;
+      }
+      return `
+        <div class="attLinks">
+          <a href="${escapeHtml(ex.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(ex.name || "Excel")}</a>
+          <span class="pillX" title="Borrar excel" data-action="delexcel">×</span>
+        </div>
+        <div style="margin-top:6px">
+          <button class="small secondary" data-action="upexcel" data-id="${id}">Reemplazar</button>
+        </div>
+      `;
+    }
+
     addBtn.addEventListener("click", async () => {
       const data = {
         factura: $("factura").value.trim(),
         division: $("division").value.trim(),
         transporte: $("transporte").value.trim(),
         carpeta: $("carpeta").value.trim(),
-        dua: $("dua").value.trim(),                              // ✅ nuevo
+        dua: $("dua").value.trim(),
         fecha_estimada: $("fecha_estimada").value || "",
-        fecha_deposito: $("fecha_deposito").value || "",         // ✅ nuevo
+        fecha_deposito: $("fecha_deposito").value || "",
         oc: $("oc").value.trim(),
 
-        // ✅ nuevo orden
         cierre: safeYesNo($("cierre").value),
         cond: safeYesNo($("cond").value),
         wis: safeYesNo($("wis").value),
-        confirmacion_llegada: safeYesNo($("confirmacion_llegada").value), // ✅ nuevo
+        confirmacion_llegada: safeYesNo($("confirmacion_llegada").value),
+
+        // ✅ nuevo campo
+        excelAttachment: null,
 
         attachments: [],
         createdAt: serverTimestamp(),
@@ -692,7 +806,7 @@
       const empty =
         !data.factura && !data.division && !data.transporte && !data.carpeta &&
         !data.dua && !data.fecha_estimada && !data.fecha_deposito &&
-        !data.oc && !selectedFiles.length;
+        !data.oc && !selectedFiles.length && !selectedExcelFile;
 
       if (empty) { alert("Ingresá al menos un dato o adjuntá un archivo para agregar."); return; }
 
@@ -704,10 +818,18 @@
         const docRef = await addDoc(collection(db, "rows"), data);
         rowId = docRef.id;
 
+        // adjuntos normales
         if (selectedFiles.length){
           const uploaded = await uploadAttachments(rowId, selectedFiles);
           msgEl.textContent = "Actualizando fila...";
           await updateDoc(doc(db, "rows", rowId), { attachments: uploaded, updatedAt: serverTimestamp() });
+        }
+
+        // ✅ excel
+        if (selectedExcelFile){
+          const uploadedExcel = await uploadExcel(rowId, selectedExcelFile);
+          msgEl.textContent = "Actualizando excel...";
+          await updateDoc(doc(db, "rows", rowId), { excelAttachment: uploadedExcel, updatedAt: serverTimestamp() });
         }
 
         msgEl.textContent = "";
@@ -740,16 +862,18 @@
             <td>${escapeHtml(r.fecha_estimada)}</td>
             <td>${escapeHtml(r.oc)}</td>
 
-            <!-- ✅ ORDEN NUEVO -->
             <td>${escapeHtml(r.cierre)}</td>
             <td>${escapeHtml(r.cond)}</td>
             <td>${escapeHtml(r.wis)}</td>
 
-            <!-- ✅ NUEVAS -->
             <td>${escapeHtml(r.fecha_deposito)}</td>
             <td>${escapeHtml(r.confirmacion_llegada)}</td>
 
+            <!-- ✅ Excel -->
+            <td>${renderExcelCell(id, r)}</td>
+
             <td>${renderAttachmentsCell(r)}</td>
+
             <td>
               <div class="actions">
                 <button class="small secondary" data-action="edit">Editar</button>
@@ -786,7 +910,6 @@
           <td><input class="cell-input w160" type="date" data-field="fecha_estimada" value="${fecha_estimada}"></td>
           <td><input class="cell-input w140" data-field="oc" value="${oc}"></td>
 
-          <!-- ✅ ORDEN NUEVO -->
           <td>
             <select class="cell-input w110" data-field="cierre">
               <option value="SI" ${cierre==="SI" ? "selected" : ""}>SI</option>
@@ -808,7 +931,6 @@
             </select>
           </td>
 
-          <!-- ✅ NUEVAS -->
           <td><input class="cell-input w160" type="date" data-field="fecha_deposito" value="${fecha_deposito}"></td>
 
           <td>
@@ -817,6 +939,9 @@
               <option value="NO" ${confirmacion_llegada==="NO" ? "selected" : ""}>NO</option>
             </select>
           </td>
+
+          <!-- Excel (en edición se muestra igual, se sube con botón) -->
+          <td>${renderExcelCell(id, r)}</td>
 
           <td>${renderAttachmentsCell(r)}</td>
 
@@ -847,6 +972,42 @@
       showToast("No se pudo leer Firestore", true);
     });
 
+    // ✅ subir excel desde fila (picker oculto)
+    $("excelRowPicker").addEventListener("change", async (e) => {
+      const f = (e.target.files || [])[0];
+      $("excelRowPicker").value = "";
+      if (!pendingExcelRowId) return;
+      if (!f) return;
+
+      if (!isExcelFile(f)){
+        alert("Solo se permite Excel (.xls o .xlsx).");
+        pendingExcelRowId = null;
+        return;
+      }
+
+      const rowId = pendingExcelRowId;
+      pendingExcelRowId = null;
+
+      // si ya había excel, lo borramos primero
+      const row = cache.find(x => x.id === rowId);
+      const prev = row?.data?.excelAttachment;
+      try{
+        msgEl.textContent = "Subiendo excel...";
+        if (prev?.path){
+          await deleteObject(sRef(storage, prev.path));
+        }
+        const uploaded = await uploadExcel(rowId, f);
+        await updateDoc(doc(db, "rows", rowId), { excelAttachment: uploaded, updatedAt: serverTimestamp() });
+        showToast("Excel actualizado");
+      } catch(err){
+        console.error(err);
+        showToast(`Error: ${errText(err)}`, true);
+        alert(errText(err));
+      } finally {
+        msgEl.textContent = "";
+      }
+    });
+
     tbody.addEventListener("click", async (e) => {
       const btn = e.target.closest("[data-action]");
       if (!btn) return;
@@ -859,6 +1020,32 @@
 
       if (action === "edit") { editingRowId = id; draw(); return; }
       if (action === "cancel") { editingRowId = null; draw(); return; }
+
+      if (action === "upexcel"){
+        pendingExcelRowId = id;
+        $("excelRowPicker").click();
+        return;
+      }
+
+      if (action === "delexcel"){
+        const row = cache.find(x => x.id === id);
+        const ex = row?.data?.excelAttachment;
+        if (!ex?.path) return;
+        if (!confirm(`¿Borrar excel "${ex.name}"?`)) return;
+        try{
+          btn.disabled = true;
+          await deleteObject(sRef(storage, ex.path));
+          await updateDoc(doc(db, "rows", id), { excelAttachment: null, updatedAt: serverTimestamp() });
+          showToast("Excel borrado");
+        } catch(err){
+          console.error(err);
+          showToast(`Error: ${errText(err)}`, true);
+          alert(errText(err));
+        } finally {
+          btn.disabled = false;
+        }
+        return;
+      }
 
       if (action === "save") {
         const fields = tr.querySelectorAll("[data-field]");
@@ -915,15 +1102,21 @@
       if (action === "delete") {
         const row = cache.find(x => x.id === id);
         const atts = row?.data?.attachments || [];
+        const ex = row?.data?.excelAttachment;
 
-        if (!confirm("¿Seguro que querés eliminar esta fila? (Borra adjuntos también)")) return;
+        if (!confirm("¿Seguro que querés eliminar esta fila? (Borra adjuntos y excel también)")) return;
 
         try {
           btn.disabled = true;
 
+          // borrar adjuntos
           for (const a of atts) {
             if (a?.path) await deleteObject(sRef(storage, a.path));
           }
+
+          // borrar excel
+          if (ex?.path) await deleteObject(sRef(storage, ex.path));
+
           await deleteDoc(doc(db, "rows", id));
 
           if (editingRowId === id) editingRowId = null;
@@ -938,9 +1131,9 @@
       }
     });
 
+    // init previews
     renderAttPreview();
+    renderExcelPreview();
   </script>
 </body>
 </html>
-
-
