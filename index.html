@@ -189,14 +189,6 @@
     .footer b{color:var(--jd-green)}
 
     /* Adjuntos UI */
-    .attList{display:flex;flex-direction:column;gap:6px;margin-top:6px}
-    .attItem{
-      display:flex;gap:8px;align-items:center;justify-content:space-between;
-      border:1px solid rgba(255,255,255,.08);
-      background: rgba(255,255,255,.03);
-      padding:8px 10px;border-radius:12px;
-    }
-    .attName{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#d6d7df}
     .attLinks{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
     a{color:#d9f1d3}
     .pillX{
@@ -208,9 +200,10 @@
       cursor:pointer;
     }
 
+    /* ✅ FIX SUPERPOSICIÓN: el formulario ahora WRAPEA */
     .row-add{
       display:flex;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;   /* ← antes estaba nowrap, eso causaba superposición */
       gap:10px;
       align-items:flex-end;
     }
@@ -220,38 +213,10 @@
     .row-add .w140{min-width:120px}
     .row-add input[type="date"]{min-width:140px}
 
-    .attWrap{
-      margin-left:auto;
-      flex: 0 0 300px;
-      max-width: 300px;
-    }
-
-    .row-add input[type="file"]{
-      min-width:300px;
-      max-width:300px;
-      padding:8px 10px;
-    }
-    .row-add input[type="file"]::file-selector-button{
-      padding:8px 10px;
-      border:1px solid var(--border-strong);
-      background: rgba(255,255,255,.06);
-      border-radius:12px;
-      cursor:pointer;
-      font-weight:900;
-      color: var(--text);
-      margin-right:8px;
-    }
-
-    .excelWrap{
-      margin-left:auto;
-      flex: 0 0 300px;
-      max-width: 300px;
-    }
-
+    /* cuando el ancho es chico, no dejamos nada "apretado" */
     @media (max-width: 1200px){
-      .row-add{overflow-x:auto;padding-bottom:6px}
-      .row-add::-webkit-scrollbar{height:8px}
-      .row-add::-webkit-scrollbar-thumb{background: rgba(255,255,255,.12);border-radius:999px}
+      .row-add > div{flex: 1 1 210px;}   /* cada campo ocupa su bloque y baja */
+      .row-add button#addBtn{flex: 0 0 auto;}
     }
   </style>
 </head>
@@ -262,7 +227,7 @@
     <div class="subpill">Estilo <b>Interagrovial</b> · verde/amarillo</div>
   </div>
 
-  <!-- FILTROS (SIN EXPORT) -->
+  <!-- FILTROS -->
   <div class="card">
     <div class="accentBar"></div>
     <div class="cardHeader">
@@ -326,7 +291,7 @@
     <div class="muted">Los filtros se aplican automáticamente sobre la tabla.</div>
   </div>
 
-  <!-- FORMULARIO AGREGAR -->
+  <!-- FORMULARIO AGREGAR (SIN EXCEL/ADJUNTOS) -->
   <div class="card">
     <div class="accentBar"></div>
     <h3>Agregar fila</h3>
@@ -404,23 +369,6 @@
         </select>
       </div>
 
-      <!-- ✅ NUEVO: EXCEL por fila -->
-      <div class="excelWrap">
-        <label>Excel (1 archivo .xls/.xlsx)</label>
-        <input
-          id="excel_file"
-          type="file"
-          accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        />
-        <div id="excelPreview" class="attList"></div>
-      </div>
-
-      <div class="attWrap">
-        <label>Adjuntos</label>
-        <input id="adjuntos" type="file" multiple />
-        <div id="attPreview" class="attList"></div>
-      </div>
-
       <button id="addBtn" class="primary" type="button">Agregar</button>
     </div>
 
@@ -428,11 +376,17 @@
     <div id="toast" class="toast"></div>
   </div>
 
-  <!-- input oculto para subir/reemplazar excel desde una fila -->
+  <!-- pickers ocultos para subir desde la tabla -->
   <input
-    id="excelRowPicker"
+    id="packingRowPicker"
     type="file"
     accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    style="display:none"
+  />
+  <input
+    id="attRowPicker"
+    type="file"
+    multiple
     style="display:none"
   />
 
@@ -456,8 +410,8 @@
         <th>Fecha depósito</th>
         <th>Confirmación de llegada</th>
 
-        <!-- ✅ NUEVO -->
-        <th>Excel</th>
+        <!-- ✅ RENOMBRADO -->
+        <th>Packing</th>
 
         <th>Adjuntos</th>
         <th>Acciones</th>
@@ -501,9 +455,9 @@
     let editingRowId = null;
     let cache = [];
     let view = [];
-    let selectedFiles = [];
-    let selectedExcelFile = null;         // ✅ nuevo
-    let pendingExcelRowId = null;         // ✅ nuevo
+
+    let pendingPackingRowId = null;
+    let pendingAttRowId = null;
 
     function showToast(text, isError=false){
       toastEl.textContent = text;
@@ -528,29 +482,12 @@
     function safeYesNo(v){ return (v === "NO") ? "NO" : "SI"; }
     function uid(){ return (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`); }
 
+    function norm(s){ return (s ?? "").toString().trim().toLowerCase(); }
+
     function isExcelFile(file){
       if (!file) return false;
       const name = (file.name || "").toLowerCase();
       return name.endsWith(".xls") || name.endsWith(".xlsx");
-    }
-
-    function renderExcelPreview(){
-      const wrap = $("excelPreview");
-      if (!selectedExcelFile){
-        wrap.innerHTML = `<div class="muted">Sin excel.</div>`;
-        return;
-      }
-      wrap.innerHTML = `
-        <div class="attItem">
-          <div class="attName">${escapeHtml(selectedExcelFile.name)} (${Math.round(selectedExcelFile.size/1024)} KB)</div>
-          <button class="small danger" type="button" id="removeExcelBtn">Quitar</button>
-        </div>
-      `;
-      $("removeExcelBtn").addEventListener("click", () => {
-        selectedExcelFile = null;
-        $("excel_file").value = "";
-        renderExcelPreview();
-      });
     }
 
     function clearAddForm() {
@@ -566,78 +503,21 @@
       $("cond").value = "SI";
       $("wis").value = "SI";
       $("confirmacion_llegada").value = "NO";
-
-      // ✅ limpiar excel
-      selectedExcelFile = null;
-      $("excel_file").value = "";
-      renderExcelPreview();
-
-      selectedFiles = [];
-      $("adjuntos").value = "";
-      renderAttPreview();
     }
-
-    function renderAttPreview(){
-      const wrap = $("attPreview");
-      if (!selectedFiles.length){
-        wrap.innerHTML = `<div class="muted">Sin adjuntos.</div>`;
-        return;
-      }
-      wrap.innerHTML = selectedFiles.map((f, idx) => `
-        <div class="attItem">
-          <div class="attName">${escapeHtml(f.name)} (${Math.round(f.size/1024)} KB)</div>
-          <button class="small danger" type="button" data-att-remove="${idx}">Quitar</button>
-        </div>
-      `).join("");
-    }
-
-    $("adjuntos").addEventListener("change", (e) => {
-      const incoming = Array.from(e.target.files || []);
-      if (incoming.length) selectedFiles = selectedFiles.concat(incoming);
-      $("adjuntos").value = "";
-      renderAttPreview();
-    });
-
-    $("attPreview").addEventListener("click", (e) => {
-      const btn = e.target.closest("button[data-att-remove]");
-      if (!btn) return;
-      const idx = Number(btn.dataset.attRemove);
-      if (Number.isNaN(idx)) return;
-      selectedFiles.splice(idx, 1);
-      renderAttPreview();
-    });
-
-    // ✅ Excel input (solo 1 archivo)
-    $("excel_file").addEventListener("change", (e) => {
-      const f = (e.target.files || [])[0];
-      if (!f){
-        selectedExcelFile = null;
-        renderExcelPreview();
-        return;
-      }
-      if (!isExcelFile(f)){
-        alert("Solo se permite Excel (.xls o .xlsx).");
-        $("excel_file").value = "";
-        selectedExcelFile = null;
-        renderExcelPreview();
-        return;
-      }
-      selectedExcelFile = f;
-      renderExcelPreview();
-    });
-
-    function norm(s){ return (s ?? "").toString().trim().toLowerCase(); }
 
     function matchesText(row, q){
       if (!q) return true;
+
       const atts = (row.attachments || []).map(a => a?.name || "").join(" ");
-      const excelName = row.excelAttachment?.name || "";
+      const packingName = row.packingAttachment?.name || "";
+
       const hay = [
         row.factura, row.division, row.transporte, row.carpeta, row.dua,
         row.fecha_estimada, row.fecha_deposito, row.confirmacion_llegada,
         row.oc, row.cond, row.wis, row.cierre,
-        excelName, atts
+        packingName, atts
       ].map(norm).join(" | ");
+
       return hay.includes(q);
     }
 
@@ -697,17 +577,15 @@
       applyFilters();
     });
 
-    async function uploadOne(rowId, file){
-      const path = `rows/${rowId}/attachments/${uid()}_${file.name}`;
+    async function uploadFileTo(path, file, progressLabel){
       const ref = sRef(storage, path);
-
       const task = uploadBytesResumable(ref, file);
 
       await new Promise((resolve, reject) => {
         task.on("state_changed",
           (snap) => {
             const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
-            msgEl.textContent = `Subiendo adjuntos... ${pct}%`;
+            msgEl.textContent = `${progressLabel}... ${pct}%`;
           },
           (err) => reject(err),
           () => resolve()
@@ -720,61 +598,56 @@
 
     async function uploadAttachments(rowId, files){
       const out = [];
-      for (const f of files) out.push(await uploadOne(rowId, f));
+      for (const f of files){
+        const path = `rows/${rowId}/attachments/${uid()}_${f.name}`;
+        out.push(await uploadFileTo(path, f, "Subiendo adjuntos"));
+      }
       return out;
     }
 
-    // ✅ NUEVO: subir excel (1 por fila)
-    async function uploadExcel(rowId, file){
-      const path = `rows/${rowId}/excel/${uid()}_${file.name}`;
-      const ref = sRef(storage, path);
-      const task = uploadBytesResumable(ref, file);
-
-      await new Promise((resolve, reject) => {
-        task.on("state_changed",
-          (snap) => {
-            const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
-            msgEl.textContent = `Subiendo excel... ${pct}%`;
-          },
-          (err) => reject(err),
-          () => resolve()
-        );
-      });
-
-      const url = await getDownloadURL(ref);
-      return { name: file.name, path, url, size: file.size };
+    async function uploadPacking(rowId, file){
+      const path = `rows/${rowId}/packing/${uid()}_${file.name}`;
+      return await uploadFileTo(path, file, "Subiendo packing");
     }
 
-    function renderAttachmentsCell(r){
+    function renderAttachmentsCell(id, r){
       const atts = r.attachments || [];
-      if (!atts.length) return `<span class="muted">—</span>`;
-      return `
+      const list = atts.length ? `
         <div class="attLinks">
           ${atts.map((a, idx) => `
             <a href="${escapeHtml(a.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(a.name || "Adjunto")}</a>
             <span class="pillX" title="Borrar adjunto" data-action="delatt" data-att-idx="${idx}">×</span>
           `).join("")}
         </div>
+      ` : `<span class="muted">—</span>`;
+
+      return `
+        ${list}
+        <div style="margin-top:6px">
+          <button class="small secondary" data-action="upatts" data-id="${id}">
+            ${atts.length ? "Agregar adjuntos" : "Subir adjuntos"}
+          </button>
+        </div>
       `;
     }
 
-    function renderExcelCell(id, r){
-      const ex = r.excelAttachment;
-      if (!ex?.url){
+    function renderPackingCell(id, r){
+      const p = r.packingAttachment;
+      if (!p?.url){
         return `
           <span class="muted">—</span>
           <div style="margin-top:6px">
-            <button class="small secondary" data-action="upexcel" data-id="${id}">Subir Excel</button>
+            <button class="small secondary" data-action="uppacking" data-id="${id}">Subir packing</button>
           </div>
         `;
       }
       return `
         <div class="attLinks">
-          <a href="${escapeHtml(ex.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(ex.name || "Excel")}</a>
-          <span class="pillX" title="Borrar excel" data-action="delexcel">×</span>
+          <a href="${escapeHtml(p.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(p.name || "Packing")}</a>
+          <span class="pillX" title="Borrar packing" data-action="delpacking">×</span>
         </div>
         <div style="margin-top:6px">
-          <button class="small secondary" data-action="upexcel" data-id="${id}">Reemplazar</button>
+          <button class="small secondary" data-action="uppacking" data-id="${id}">Reemplazar</button>
         </div>
       `;
     }
@@ -795,10 +668,10 @@
         wis: safeYesNo($("wis").value),
         confirmacion_llegada: safeYesNo($("confirmacion_llegada").value),
 
-        // ✅ nuevo campo
-        excelAttachment: null,
-
+        // ✅ ahora se gestiona desde la tabla
+        packingAttachment: null,
         attachments: [],
+
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
@@ -806,33 +679,15 @@
       const empty =
         !data.factura && !data.division && !data.transporte && !data.carpeta &&
         !data.dua && !data.fecha_estimada && !data.fecha_deposito &&
-        !data.oc && !selectedFiles.length && !selectedExcelFile;
+        !data.oc;
 
-      if (empty) { alert("Ingresá al menos un dato o adjuntá un archivo para agregar."); return; }
+      if (empty) { alert("Ingresá al menos un dato para agregar."); return; }
 
       addBtn.disabled = true;
       msgEl.textContent = "Guardando...";
 
-      let rowId = null;
       try {
-        const docRef = await addDoc(collection(db, "rows"), data);
-        rowId = docRef.id;
-
-        // adjuntos normales
-        if (selectedFiles.length){
-          const uploaded = await uploadAttachments(rowId, selectedFiles);
-          msgEl.textContent = "Actualizando fila...";
-          await updateDoc(doc(db, "rows", rowId), { attachments: uploaded, updatedAt: serverTimestamp() });
-        }
-
-        // ✅ excel
-        if (selectedExcelFile){
-          const uploadedExcel = await uploadExcel(rowId, selectedExcelFile);
-          msgEl.textContent = "Actualizando excel...";
-          await updateDoc(doc(db, "rows", rowId), { excelAttachment: uploadedExcel, updatedAt: serverTimestamp() });
-        }
-
-        msgEl.textContent = "";
+        await addDoc(collection(db, "rows"), data);
         clearAddForm();
         showToast("Agregado con éxito");
       } catch (e) {
@@ -869,10 +724,8 @@
             <td>${escapeHtml(r.fecha_deposito)}</td>
             <td>${escapeHtml(r.confirmacion_llegada)}</td>
 
-            <!-- ✅ Excel -->
-            <td>${renderExcelCell(id, r)}</td>
-
-            <td>${renderAttachmentsCell(r)}</td>
+            <td>${renderPackingCell(id, r)}</td>
+            <td>${renderAttachmentsCell(id, r)}</td>
 
             <td>
               <div class="actions">
@@ -940,10 +793,8 @@
             </select>
           </td>
 
-          <!-- Excel (en edición se muestra igual, se sube con botón) -->
-          <td>${renderExcelCell(id, r)}</td>
-
-          <td>${renderAttachmentsCell(r)}</td>
+          <td>${renderPackingCell(id, r)}</td>
+          <td>${renderAttachmentsCell(id, r)}</td>
 
           <td>
             <div class="actions">
@@ -972,33 +823,61 @@
       showToast("No se pudo leer Firestore", true);
     });
 
-    // ✅ subir excel desde fila (picker oculto)
-    $("excelRowPicker").addEventListener("change", async (e) => {
+    // subir packing desde fila
+    $("packingRowPicker").addEventListener("change", async (e) => {
       const f = (e.target.files || [])[0];
-      $("excelRowPicker").value = "";
-      if (!pendingExcelRowId) return;
-      if (!f) return;
+      $("packingRowPicker").value = "";
+      if (!pendingPackingRowId) return;
+      if (!f) { pendingPackingRowId = null; return; }
 
       if (!isExcelFile(f)){
         alert("Solo se permite Excel (.xls o .xlsx).");
-        pendingExcelRowId = null;
+        pendingPackingRowId = null;
         return;
       }
 
-      const rowId = pendingExcelRowId;
-      pendingExcelRowId = null;
+      const rowId = pendingPackingRowId;
+      pendingPackingRowId = null;
 
-      // si ya había excel, lo borramos primero
       const row = cache.find(x => x.id === rowId);
-      const prev = row?.data?.excelAttachment;
+      const prev = row?.data?.packingAttachment;
+
       try{
-        msgEl.textContent = "Subiendo excel...";
+        msgEl.textContent = "Subiendo packing...";
         if (prev?.path){
           await deleteObject(sRef(storage, prev.path));
         }
-        const uploaded = await uploadExcel(rowId, f);
-        await updateDoc(doc(db, "rows", rowId), { excelAttachment: uploaded, updatedAt: serverTimestamp() });
-        showToast("Excel actualizado");
+        const uploaded = await uploadPacking(rowId, f);
+        await updateDoc(doc(db, "rows", rowId), { packingAttachment: uploaded, updatedAt: serverTimestamp() });
+        showToast("Packing actualizado");
+      } catch(err){
+        console.error(err);
+        showToast(`Error: ${errText(err)}`, true);
+        alert(errText(err));
+      } finally {
+        msgEl.textContent = "";
+      }
+    });
+
+    // subir adjuntos desde fila
+    $("attRowPicker").addEventListener("change", async (e) => {
+      const files = Array.from(e.target.files || []);
+      $("attRowPicker").value = "";
+      if (!pendingAttRowId) return;
+      if (!files.length) { pendingAttRowId = null; return; }
+
+      const rowId = pendingAttRowId;
+      pendingAttRowId = null;
+
+      const row = cache.find(x => x.id === rowId);
+      const current = row?.data?.attachments || [];
+
+      try{
+        msgEl.textContent = "Subiendo adjuntos...";
+        const uploaded = await uploadAttachments(rowId, files);
+        const next = current.concat(uploaded);
+        await updateDoc(doc(db, "rows", rowId), { attachments: next, updatedAt: serverTimestamp() });
+        showToast("Adjuntos actualizados");
       } catch(err){
         console.error(err);
         showToast(`Error: ${errText(err)}`, true);
@@ -1021,22 +900,53 @@
       if (action === "edit") { editingRowId = id; draw(); return; }
       if (action === "cancel") { editingRowId = null; draw(); return; }
 
-      if (action === "upexcel"){
-        pendingExcelRowId = id;
-        $("excelRowPicker").click();
+      if (action === "uppacking"){
+        pendingPackingRowId = id;
+        $("packingRowPicker").click();
         return;
       }
 
-      if (action === "delexcel"){
+      if (action === "upatts"){
+        pendingAttRowId = id;
+        $("attRowPicker").click();
+        return;
+      }
+
+      if (action === "delpacking"){
         const row = cache.find(x => x.id === id);
-        const ex = row?.data?.excelAttachment;
-        if (!ex?.path) return;
-        if (!confirm(`¿Borrar excel "${ex.name}"?`)) return;
+        const p = row?.data?.packingAttachment;
+        if (!p?.path) return;
+        if (!confirm(`¿Borrar packing "${p.name}"?`)) return;
         try{
           btn.disabled = true;
-          await deleteObject(sRef(storage, ex.path));
-          await updateDoc(doc(db, "rows", id), { excelAttachment: null, updatedAt: serverTimestamp() });
-          showToast("Excel borrado");
+          await deleteObject(sRef(storage, p.path));
+          await updateDoc(doc(db, "rows", id), { packingAttachment: null, updatedAt: serverTimestamp() });
+          showToast("Packing borrado");
+        } catch(err){
+          console.error(err);
+          showToast(`Error: ${errText(err)}`, true);
+          alert(errText(err));
+        } finally {
+          btn.disabled = false;
+        }
+        return;
+      }
+
+      if (action === "delatt"){
+        const idx = Number(btn.dataset.attIdx);
+        const row = cache.find(x => x.id === id);
+        const atts = row?.data?.attachments || [];
+        const att = atts[idx];
+        if (!att?.path) return;
+
+        if (!confirm(`¿Borrar adjunto "${att.name}"?`)) return;
+
+        try{
+          btn.disabled = true;
+          await deleteObject(sRef(storage, att.path));
+          const next = atts.filter((_, i) => i !== idx);
+          await updateDoc(doc(db, "rows", id), { attachments: next, updatedAt: serverTimestamp() });
+          showToast("Adjunto borrado");
         } catch(err){
           console.error(err);
           showToast(`Error: ${errText(err)}`, true);
@@ -1072,56 +982,26 @@
         return;
       }
 
-      if (action === "delatt") {
-        const idx = Number(btn.dataset.attIdx);
-        const row = cache.find(x => x.id === id);
-        const atts = row?.data?.attachments || [];
-        const att = atts[idx];
-        if (!att?.path) return;
-
-        if (!confirm(`¿Borrar adjunto "${att.name}"?`)) return;
-
-        try {
-          btn.disabled = true;
-          await deleteObject(sRef(storage, att.path));
-
-          const next = atts.filter((_, i) => i !== idx);
-          await updateDoc(doc(db, "rows", id), { attachments: next, updatedAt: serverTimestamp() });
-
-          showToast("Adjunto borrado");
-        } catch (err) {
-          console.error(err);
-          showToast(`Error: ${errText(err)}`, true);
-          alert(errText(err));
-        } finally {
-          btn.disabled = false;
-        }
-        return;
-      }
-
       if (action === "delete") {
         const row = cache.find(x => x.id === id);
         const atts = row?.data?.attachments || [];
-        const ex = row?.data?.excelAttachment;
+        const p = row?.data?.packingAttachment;
 
-        if (!confirm("¿Seguro que querés eliminar esta fila? (Borra adjuntos y excel también)")) return;
+        if (!confirm("¿Seguro que querés eliminar esta fila? (Borra adjuntos y packing también)")) return;
 
-        try {
+        try{
           btn.disabled = true;
 
-          // borrar adjuntos
           for (const a of atts) {
             if (a?.path) await deleteObject(sRef(storage, a.path));
           }
 
-          // borrar excel
-          if (ex?.path) await deleteObject(sRef(storage, ex.path));
+          if (p?.path) await deleteObject(sRef(storage, p.path));
 
           await deleteDoc(doc(db, "rows", id));
-
           if (editingRowId === id) editingRowId = null;
           showToast("Eliminado con éxito");
-        } catch (err) {
+        } catch(err){
           console.error(err);
           showToast(`Error: ${errText(err)}`, true);
           alert(errText(err));
@@ -1130,10 +1010,6 @@
         }
       }
     });
-
-    // init previews
-    renderAttPreview();
-    renderExcelPreview();
   </script>
 </body>
 </html>
