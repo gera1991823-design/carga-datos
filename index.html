@@ -251,198 +251,171 @@
 </head>
 
 <body>
+  <div class="topbar">
+    <h1 class="title"><span class="brandDot"></span> Carga de datos</h1>
+    <div class="subpill">Estilo <b>Interagrovial</b> · verde/amarillo</div>
+  </div>
 
-  <!-- ✅ LOGIN -->
-  <div id="loginBox" class="card" style="max-width:420px;margin:80px auto;">
+  <!-- FILTROS + EXPORT -->
+  <div class="card">
     <div class="accentBar"></div>
-    <h3>Ingresar</h3>
+    <div class="cardHeader">
+      <h3>Filtros</h3>
+      <div class="row" style="gap:8px">
+        <button id="exportBtn" class="primary" type="button">Descargar Excel</button>
+        <button id="clearFiltersBtn" class="secondary" type="button">Limpiar filtros</button>
+      </div>
+    </div>
 
-    <label>Email</label>
-    <input id="loginEmail" type="email" placeholder="usuario@empresa.com"/>
+    <div class="row">
+      <div>
+        <label>Buscar (cualquier campo)</label>
+        <input id="q" class="w220" placeholder="Ej: 12004566 / AGRO / 88855"/>
+      </div>
 
-    <label style="margin-top:10px">Contraseña</label>
-    <input id="loginPass" type="password" placeholder="••••••••"/>
+      <div>
+        <label>División</label>
+        <select id="fDivision">
+          <option value="">(Todas)</option>
+        </select>
+      </div>
 
-    <button id="loginBtn" class="primary" style="margin-top:14px;width:100%">
-      Ingresar
-    </button>
+      <div>
+        <label>Condiciones</label>
+        <select id="fCond">
+          <option value="">(Todas)</option>
+          <option value="SI">SI</option>
+          <option value="NO">NO</option>
+        </select>
+      </div>
 
-    <div id="loginError" class="toast err" style="display:none"></div>
+      <div>
+        <label>WIS</label>
+        <select id="fWis">
+          <option value="">(Todas)</option>
+          <option value="SI">SI</option>
+          <option value="NO">NO</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Cierre de carpeta</label>
+        <select id="fCierre">
+          <option value="">(Todas)</option>
+          <option value="SI">SI</option>
+          <option value="NO">NO</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Fecha estimada desde</label>
+        <input id="fDateFrom" type="date"/>
+      </div>
+
+      <div>
+        <label>Fecha estimada hasta</label>
+        <input id="fDateTo" type="date"/>
+      </div>
+    </div>
+
+    <div class="muted">Los filtros se aplican automáticamente sobre la tabla. “Descargar Excel” exporta lo filtrado.</div>
   </div>
 
-  <!-- ✅ APP (se muestra solo si hay usuario logueado) -->
-  <div id="appContent" style="display:none">
+  <!-- FORMULARIO AGREGAR -->
+  <div class="card">
+    <div class="accentBar"></div>
+    <h3>Agregar fila</h3>
 
-    <div class="topbar">
-      <h1 class="title"><span class="brandDot"></span> Carga de datos</h1>
-      <div class="row" style="gap:8px;align-items:center">
-        <div class="subpill">Estilo <b>Interagrovial</b> · verde/amarillo</div>
-        <button id="logoutBtn" class="secondary" type="button">Salir</button>
+    <div class="row row-add">
+      <div>
+        <label>Factura</label>
+        <input id="factura" class="w140" inputmode="numeric" placeholder="Ej: 456222"/>
       </div>
+
+      <div>
+        <label>División</label>
+        <input id="division" class="w200" placeholder="Ej: AGRO"/>
+      </div>
+
+      <div>
+        <label>Transporte</label>
+        <input id="transporte" class="w200" placeholder="Ej: Barco / Avión"/>
+      </div>
+
+      <div>
+        <label>Carpeta</label>
+        <input id="carpeta" class="w140" placeholder="Ej: 88855"/>
+      </div>
+
+      <div>
+        <label>Fecha estimada</label>
+        <input id="fecha_estimada" type="date" />
+      </div>
+
+      <div>
+        <label>Orden de compra</label>
+        <input id="oc" class="w140" inputmode="numeric" placeholder="Ej: 12004566"/>
+      </div>
+
+      <div>
+        <label>Condiciones</label>
+        <select id="cond">
+          <option value="SI">SI</option>
+          <option value="NO">NO</option>
+        </select>
+      </div>
+
+      <div>
+        <label>WIS</label>
+        <select id="wis">
+          <option value="SI">SI</option>
+          <option value="NO">NO</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Cierre de carpeta</label>
+        <select id="cierre">
+          <option value="SI">SI</option>
+          <option value="NO">NO</option>
+        </select>
+      </div>
+
+      <div class="attWrap">
+        <label>Adjuntos</label>
+        <input id="adjuntos" type="file" multiple />
+        <div id="attPreview" class="attList"></div>
+      </div>
+
+      <button id="addBtn" class="primary" type="button">Agregar</button>
     </div>
 
-    <!-- FILTROS + EXPORT -->
-    <div class="card">
-      <div class="accentBar"></div>
-      <div class="cardHeader">
-        <h3>Filtros</h3>
-        <div class="row" style="gap:8px">
-          <button id="exportBtn" class="primary" type="button">Descargar Excel</button>
-          <button id="clearFiltersBtn" class="secondary" type="button">Limpiar filtros</button>
-        </div>
-      </div>
-
-      <div class="row">
-        <div>
-          <label>Buscar (cualquier campo)</label>
-          <input id="q" class="w220" placeholder="Ej: 12004566 / AGRO / 88855"/>
-        </div>
-
-        <div>
-          <label>División</label>
-          <select id="fDivision">
-            <option value="">(Todas)</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Condiciones</label>
-          <select id="fCond">
-            <option value="">(Todas)</option>
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
-          </select>
-        </div>
-
-        <div>
-          <label>WIS</label>
-          <select id="fWis">
-            <option value="">(Todas)</option>
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Cierre de carpeta</label>
-          <select id="fCierre">
-            <option value="">(Todas)</option>
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Fecha estimada desde</label>
-          <input id="fDateFrom" type="date"/>
-        </div>
-
-        <div>
-          <label>Fecha estimada hasta</label>
-          <input id="fDateTo" type="date"/>
-        </div>
-      </div>
-
-      <div class="muted">Los filtros se aplican automáticamente sobre la tabla. “Descargar Excel” exporta lo filtrado.</div>
-    </div>
-
-    <!-- FORMULARIO AGREGAR -->
-    <div class="card">
-      <div class="accentBar"></div>
-      <h3>Agregar fila</h3>
-
-      <div class="row row-add">
-        <div>
-          <label>Factura</label>
-          <input id="factura" class="w140" inputmode="numeric" placeholder="Ej: 456222"/>
-        </div>
-
-        <div>
-          <label>División</label>
-          <input id="division" class="w200" placeholder="Ej: AGRO"/>
-        </div>
-
-        <div>
-          <label>Transporte</label>
-          <input id="transporte" class="w200" placeholder="Ej: Barco / Avión"/>
-        </div>
-
-        <div>
-          <label>Carpeta</label>
-          <input id="carpeta" class="w140" placeholder="Ej: 88855"/>
-        </div>
-
-        <div>
-          <label>Fecha estimada</label>
-          <input id="fecha_estimada" type="date" />
-        </div>
-
-        <div>
-          <label>Orden de compra</label>
-          <input id="oc" class="w140" inputmode="numeric" placeholder="Ej: 12004566"/>
-        </div>
-
-        <div>
-          <label>Condiciones</label>
-          <select id="cond">
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
-          </select>
-        </div>
-
-        <div>
-          <label>WIS</label>
-          <select id="wis">
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Cierre de carpeta</label>
-          <select id="cierre">
-            <option value="SI">SI</option>
-            <option value="NO">NO</option>
-          </select>
-        </div>
-
-        <div class="attWrap">
-          <label>Adjuntos</label>
-          <input id="adjuntos" type="file" multiple />
-          <div id="attPreview" class="attList"></div>
-        </div>
-
-        <button id="addBtn" class="primary" type="button">Agregar</button>
-      </div>
-
-      <div id="msg" class="muted"></div>
-      <div id="toast" class="toast"></div>
-    </div>
-
-    <!-- TABLA -->
-    <table>
-      <thead>
-        <tr>
-          <th>Fecha carga</th>
-          <th>Factura</th>
-          <th>División</th>
-          <th>Transporte</th>
-          <th>Carpeta</th>
-          <th>Fecha estimada</th>
-          <th>Orden compra</th>
-          <th>Condiciones</th>
-          <th>WIS</th>
-          <th>Cierre carpeta</th>
-          <th>Adjuntos</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-
-    <div class="footer"><b>INTERAGROVIAL S.A</b></div>
+    <div id="msg" class="muted"></div>
+    <div id="toast" class="toast"></div>
   </div>
 
+  <!-- TABLA -->
+  <table>
+    <thead>
+      <tr>
+        <th>Fecha carga</th>
+        <th>Factura</th>
+        <th>División</th>
+        <th>Transporte</th>
+        <th>Carpeta</th>
+        <th>Fecha estimada</th>
+        <th>Orden compra</th>
+        <th>Condiciones</th>
+        <th>WIS</th>
+        <th>Cierre carpeta</th>
+        <th>Adjuntos</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <div class="footer"><b>INTERAGROVIAL S.A</b></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
@@ -453,44 +426,35 @@
     import {
       getStorage, ref as sRef, uploadBytesResumable, getDownloadURL, deleteObject
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
-    import {
-      getAuth,
-      signInWithEmailAndPassword,
-      signOut,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDIGkNekvGn0XrqGvDAuutCBSglod03644",
-      authDomain: "carpetas-17846.firebaseapp.com",
-      projectId: "carpetas-17846",
-      storageBucket: "carpetas-17846.firebasestorage.app",
-      messagingSenderId: "513234224676",
-      appId: "1:513234224676:web:a61b7ab9685594d1b5bab1",
-      measurementId: "G-8Z18FTM0L6"
-    };
+    // ✅ PEGA ACÁ EL CONFIG COMPLETO (Project settings -> SDK config)
+   const firebaseConfig = {
+  apiKey: "AIzaSyDIGkNekvGn0XrqGvDAuutCBSglod03644",
+  authDomain: "carpetas-17846.firebaseapp.com",
+  projectId: "carpetas-17846",
+  storageBucket: "carpetas-17846.firebasestorage.app", // 🔥 ESTE ES EL CAMBIO
+  messagingSenderId: "513234224676",
+  appId: "1:513234224676:web:a61b7ab9685594d1b5bab1",
+  measurementId: "G-8Z18FTM0L6"
+};
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
+    // ✅ Fuerzo bucket explícito (evita “bucket equivocado”)
     const storage = getStorage(app);
-    const auth = getAuth(app);
 
     const $ = (id) => document.getElementById(id);
-
-    // UI login/app
-    const loginBox = $("loginBox");
-    const appContent = $("appContent");
-    const loginBtn = $("loginBtn");
-    const loginError = $("loginError");
-    const logoutBtn = $("logoutBtn");
-
-    // App UI
     const tbody = $("tbody");
     const msgEl = $("msg");
     const toastEl = $("toast");
     const addBtn = $("addBtn");
 
-    // Helpers
+    let editingRowId = null;
+    let cache = [];
+    let view = [];
+    let selectedFiles = [];
+
     function showToast(text, isError=false){
       toastEl.textContent = text;
       toastEl.classList.toggle("err", isError);
@@ -498,69 +462,21 @@
       clearTimeout(showToast._t);
       showToast._t = setTimeout(() => toastEl.style.display = "none", 4500);
     }
+
     function escapeHtml(s){
       return String(s ?? "")
         .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
         .replaceAll('"',"&quot;").replaceAll("'","&#039;");
     }
+
     function errText(e){
       const code = e?.code ? `[${e.code}] ` : "";
       const msg = e?.message || String(e);
       return code + msg;
     }
+
     function safeYesNo(v){ return (v === "NO") ? "NO" : "SI"; }
     function uid(){ return (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`); }
-    function norm(s){ return (s ?? "").toString().trim().toLowerCase(); }
-
-    // ✅ LOGIN CLICK
-    loginBtn.addEventListener("click", async () => {
-      loginError.style.display = "none";
-      loginBtn.disabled = true;
-
-      const email = $("loginEmail").value.trim();
-      const pass  = $("loginPass").value;
-
-      if (!email || !pass) {
-        loginError.textContent = "Ingresá email y contraseña";
-        loginError.style.display = "block";
-        loginBtn.disabled = false;
-        return;
-      }
-
-      try {
-        await signInWithEmailAndPassword(auth, email, pass);
-      } catch (e) {
-        console.error("LOGIN ERROR:", e);
-        loginError.textContent = errText(e);
-        loginError.style.display = "block";
-      } finally {
-        loginBtn.disabled = false;
-      }
-    });
-
-    // ✅ LOGOUT
-    logoutBtn.addEventListener("click", async () => {
-      await signOut(auth);
-    });
-
-    // ✅ MOSTRAR / OCULTAR SEGÚN SESIÓN
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        loginBox.style.display = "none";
-        appContent.style.display = "block";
-        addBtn.disabled = false;
-      } else {
-        loginBox.style.display = "block";
-        appContent.style.display = "none";
-        addBtn.disabled = true;
-      }
-    });
-
-    // ----------- TU APP (mismo código de antes) -----------
-    let editingRowId = null;
-    let cache = [];
-    let view = [];
-    let selectedFiles = [];
 
     function clearAddForm() {
       $("factura").value = "";
@@ -607,6 +523,8 @@
       selectedFiles.splice(idx, 1);
       renderAttPreview();
     });
+
+    function norm(s){ return (s ?? "").toString().trim().toLowerCase(); }
 
     function matchesText(row, q){
       if (!q) return true;
@@ -677,6 +595,8 @@
     async function uploadOne(rowId, file){
       const path = `rows/${rowId}/${uid()}_${file.name}`;
       const ref = sRef(storage, path);
+
+      // ✅ resumable: no queda “colgado”, devuelve error real
       const task = uploadBytesResumable(ref, file);
 
       await new Promise((resolve, reject) => {
@@ -832,13 +752,7 @@
             </select>
           </td>
 
-          <td>
-            ${renderAttachmentsCell(r)}
-            <div style="margin-top:8px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-              <input type="file" multiple data-edit-files style="max-width:260px"/>
-              <button class="small secondary" type="button" data-action="upload">Subir adjuntos</button>
-            </div>
-          </td>
+          <td>${renderAttachmentsCell(r)}</td>
 
           <td>
             <div class="actions">
@@ -879,38 +793,6 @@
 
       if (action === "edit") { editingRowId = id; draw(); return; }
       if (action === "cancel") { editingRowId = null; draw(); return; }
-
-      if (action === "upload") {
-        const row = cache.find(x => x.id === id);
-        const currentAtts = row?.data?.attachments || [];
-
-        const fileInput = tr.querySelector('input[type="file"][data-edit-files]');
-        const files = Array.from(fileInput?.files || []);
-
-        if (!files.length) { alert("Elegí uno o más archivos para subir."); return; }
-
-        try {
-          btn.disabled = true;
-          msgEl.textContent = "Subiendo adjuntos...";
-
-          const uploaded = await uploadAttachments(id, files);
-          const next = currentAtts.concat(uploaded);
-
-          await updateDoc(doc(db, "rows", id), { attachments: next, updatedAt: serverTimestamp() });
-
-          msgEl.textContent = "";
-          fileInput.value = "";
-          showToast("Adjuntos subidos");
-        } catch (err) {
-          console.error(err);
-          showToast(`Error: ${errText(err)}`, true);
-          alert(errText(err));
-        } finally {
-          btn.disabled = false;
-          msgEl.textContent = "";
-        }
-        return;
-      }
 
       if (action === "save") {
         const fields = tr.querySelectorAll("[data-field]");
@@ -993,3 +875,5 @@
   </script>
 </body>
 </html>
+
+
