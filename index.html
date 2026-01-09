@@ -426,6 +426,9 @@
     import {
       getStorage, ref as sRef, uploadBytesResumable, getDownloadURL, deleteObject
     } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-storage.js";
+    import {
+  getAuth, signInAnonymously, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDIGkNekvGn0XrqGvDAuutCBSglod03644",
@@ -910,3 +913,4 @@
   </script>
 </body>
 </html>
+
