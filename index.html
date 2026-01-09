@@ -251,6 +251,25 @@
 </head>
 
 <body>
+  <div id="loginBox" class="card" style="max-width:420px;margin:80px auto;">
+    <div id="appContent" style="display:none">
+  <div class="accentBar"></div>
+  <h3>Ingresar</h3>
+      </div>
+
+  <label>Email</label>
+  <input id="loginEmail" type="email" placeholder="usuario@empresa.com"/>
+
+  <label style="margin-top:10px">Contraseña</label>
+  <input id="loginPass" type="password" placeholder="••••••••"/>
+
+  <button id="loginBtn" class="primary" style="margin-top:14px;width:100%">
+    Ingresar
+  </button>
+
+  <div id="loginError" class="toast err"></div>
+</div>
+
   <div class="topbar">
     <h1 class="title"><span class="brandDot"></span> Carga de datos</h1>
     <div class="subpill">Estilo <b>Interagrovial</b> · verde/amarillo</div>
@@ -933,8 +952,45 @@ onAuthStateChanged(auth, (user) => {
 
     renderAttPreview();
   </script>
+  const loginBox = document.getElementById("loginBox");
+const appContent = document.getElementById("appContent");
+const loginBtn = document.getElementById("loginBtn");
+const loginError = document.getElementById("loginError");
+
+loginBtn.addEventListener("click", async () => {
+  loginError.style.display = "none";
+
+  const email = document.getElementById("loginEmail").value.trim();
+  const pass  = document.getElementById("loginPass").value;
+
+  if (!email || !pass) {
+    loginError.textContent = "Ingresá email y contraseña";
+    loginError.style.display = "block";
+    return;
+  }
+
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch (e) {
+    loginError.textContent = "Credenciales inválidas";
+    loginError.style.display = "block";
+  }
+});
+
+// Mostrar / ocultar app según login
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    loginBox.style.display = "none";
+    appContent.style.display = "block";
+  } else {
+    loginBox.style.display = "block";
+    appContent.style.display = "none";
+  }
+});
+
 </body>
 </html>
+
 
 
 
