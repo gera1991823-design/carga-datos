@@ -556,13 +556,13 @@ const analytics = getAnalytics(app);
         return;
       }
 
-      try {
-        await signInWithEmailAndPassword(auth, email, pass);
-      } catch (e) {
-        console.error("LOGIN ERROR:", e);
-        loginError.textContent = "Credenciales inválidas";
-        loginError.style.display = "block";
-      }
+   try {
+  await signInWithEmailAndPassword(auth, email, pass);
+} catch (e) {
+  console.error("LOGIN ERROR:", e);
+  loginError.textContent = `${e.code || ""} ${e.message || "Error de login"}`;
+  loginError.style.display = "block";
+}
     });
 
     logoutBtn.addEventListener("click", async () => {
@@ -1026,4 +1026,5 @@ const analytics = getAnalytics(app);
   </script>
 </body>
 </html>
+
 
