@@ -10,15 +10,17 @@
       --jd-green:#367c2b;
       --jd-yellow:#ffde00;
 
-      --bg:#0b0b0d;
-      --text:#e7e7ea;
-      --muted:#a5a7b3;
+      --bg:#f6f7fb;
+      --text:#071218; /* texto principal */
+      --title-color:#000; /* títulos en negro */
+      --row-text:#3b4950; /* texto de las filas, más claro que el título */
+      --muted:#5b646d;
 
-      --border:#2a2d35;
-      --border-strong:#3a3f4a;
+      --border:#e6e9ef;
+      --border-strong:#c9d2d9;
 
-      --shadow:0 18px 45px rgba(0,0,0,.55);
-      --shadow2:0 8px 22px rgba(0,0,0,.35);
+      --shadow:0 12px 30px rgba(15,23,32,.06);
+      --shadow2:0 6px 14px rgba(15,23,32,.04);
       --radius:16px;
     }
 
@@ -26,8 +28,8 @@
     body{
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       margin: 22px;
-      background: radial-gradient(1200px 600px at 15% 0%, rgba(54,124,43,.16), transparent 55%),
-                  radial-gradient(1200px 600px at 85% 0%, rgba(255,222,0,.10), transparent 55%),
+      background: radial-gradient(1200px 600px at 15% 0%, rgba(54,124,43,.06), transparent 55%),
+                  radial-gradient(1200px 600px at 85% 0%, rgba(255,222,0,.03), transparent 55%),
                   var(--bg);
       color: var(--text);
     }
@@ -39,6 +41,7 @@
     .title{
       display:flex;align-items:center;gap:12px;margin:0;
       font-size:22px;font-weight:900;letter-spacing:.2px;
+      color: #000000 !important;
     }
     .brandDot{
       width:14px;height:14px;border-radius:999px;
@@ -49,14 +52,14 @@
       display:inline-flex;align-items:center;gap:8px;
       border:1px solid var(--border);
       padding:8px 12px;border-radius:999px;
-      background: rgba(255,255,255,.04);
-      font-size:12px;color:#cfd1da;
+      background: rgba(0,0,0,.03);
+      font-size:12px;color:var(--muted);
       box-shadow: var(--shadow2);
     }
     .subpill b{color:var(--jd-green)}
 
     .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      background: linear-gradient(180deg, rgba(0,0,0,.03), rgba(0,0,0,.01));
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 16px;
@@ -65,23 +68,26 @@
       overflow:hidden;
     }
     .accentBar{
-      height:5px;border-radius:999px;
-      background: linear-gradient(90deg, rgba(54,124,43,.95), rgba(255,222,0,.75));
-      margin:-16px -16px 14px -16px;
-      filter: saturate(1.05);
+      display:none; /* oculto: usuario pidió sin la barra amarillo/verde */
     }
     .cardHeader{
       display:flex;align-items:center;justify-content:space-between;
       gap:10px;flex-wrap:wrap;margin-bottom:10px;
     }
     .card h3{
-      margin:0 0 10px;font-size:13px;
-      text-transform:uppercase;letter-spacing:.10em;
-      color:#d6d7df;
+      margin:6px 0 12px;font-size:20px;
+      text-transform:uppercase;letter-spacing:.08em;
+      color:#000000 !important;
+      font-weight:900 !important;
+      display:inline-block;
+      background: rgba(255,255,255,0.98);
+      padding:8px 12px;border-radius:8px;border:1px solid var(--border);
     }
 
+    .cardHeader{border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:18px}
+
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
-    label{font-size:12px;color:#cfd1da;display:block;margin-bottom:6px;font-weight:800}
+    label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px;font-weight:800}
 
     input,select{
       padding:10px 12px;
@@ -89,12 +95,12 @@
       border-radius:14px;
       font-size:14px;
       min-width:160px;
-      background: rgba(255,255,255,.03);
+      background: rgba(0,0,0,.04);
       color: var(--text);
       outline:none;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
     }
-    input::placeholder{color:#8c90a3}
+    input::placeholder{color:var(--muted)}
     input:focus,select:focus{
       border-color: rgba(54,124,43,.85);
       box-shadow: 0 0 0 4px rgba(54,124,43,.20);
@@ -103,9 +109,9 @@
 
     button{
       padding:10px 12px;border:1px solid var(--border-strong);
-      background: rgba(255,255,255,.04);
+      background: rgba(0,0,0,.04);
       border-radius:14px;cursor:pointer;
-      transition:.12s ease;font-weight:900;color:#e7e7ea;
+      transition:.12s ease;font-weight:900;color:var(--text);
       box-shadow: var(--shadow2);
     }
     button:hover{transform: translateY(-1px)}
@@ -132,35 +138,57 @@
 
     table{
       width:100%;
-      border-collapse:separate;border-spacing:0;
-      background: rgba(255,255,255,.03);
+      border-collapse:separate;
+      border-spacing:0 14px; /* separacion vertical entre filas */
+      background: transparent;
       border:1px solid var(--border);
       border-radius: var(--radius);
-      overflow:hidden;
+      overflow:visible;
       box-shadow: var(--shadow);
     }
     thead th{
-      background: rgba(255,255,255,.02);
+      background: rgba(0,0,0,.03);
       position:sticky;top:0;z-index:2;
       text-align:center;
     }
     th,td{
-      border-bottom:1px solid rgba(255,255,255,.06);
-      padding:10px;font-size:14px;vertical-align:top;
-      white-space:nowrap;text-align:center;color:#e7e7ea;
+      /* td sin padding: lo maneja .cellInner */
+      border-bottom: none;
+      padding:0;font-size:14px;vertical-align:middle;
+      white-space:nowrap;text-align:center;color:var(--text);
+      font-weight:600;
+      background-clip: padding-box;
     }
+
+    /* Contenedor interno por celda que pinta el fondo y paddings */
+    .cellInner{
+      display:flex;align-items:center;justify-content:center;
+      padding:14px 10px;border-radius:10px;min-height:48px;
+      width:100%;box-sizing:border-box;
+      font-weight:600; /* filas menos pesadas que el título */
+      color: var(--row-text);
+      border:1px solid rgba(15,23,32,.04);
+      box-shadow: 0 10px 18px rgba(15,23,32,.06);
+    }
+    /* fondos más oscuros para distinguir claramente cada fila */
+    tbody tr:nth-child(odd) .cellInner{background: #e3eaee}
+    tbody tr:nth-child(even) .cellInner{background: #d3dde2}
+    tbody tr:hover .cellInner{background: rgba(54,124,43,.12)}
+    .cellInner .cell-input{width:100%;box-sizing:border-box;background:transparent;border:none;padding:0;}
     th{
-      font-size:12px;letter-spacing:.06em;text-transform:uppercase;
-      color:#cfd1da;position:relative;
+      font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+      color:var(--muted);position:relative;padding:12px 8px;
     }
-    th::after{
-      content:"";
-      position:absolute;left:0;bottom:0;width:100%;height:3px;
-      background: linear-gradient(90deg, rgba(54,124,43,.95), rgba(255,222,0,.75));
-      opacity:.95;
-    }
-    tbody tr:nth-child(odd){background: rgba(255,255,255,.01)}
-    tbody tr:hover{background: rgba(54,124,43,.10)}
+    th::after{display:none} /* quitar la línea amarilla/verde debajo de los encabezados */
+    tbody tr:nth-child(odd){background: #f3f6f8}
+    tbody tr:nth-child(even){background: #e9eef2}
+    tbody tr{transition: background .12s ease}
+    tbody tr:hover{background: rgba(54,124,43,.09)}
+
+    /* reforzar separacion: sombra sutil por fila */
+    tbody tr{box-shadow: 0 8px 20px rgba(15,23,32,.06);border-radius:10px}
+    /* asegurar que las celdas no pinten sobre el fondo del <tr> */
+    tbody tr td{background:transparent}
 
     .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
     .cell-input{
@@ -179,7 +207,7 @@
 
     .footer{
       position:fixed;left:16px;bottom:12px;font-size:12px;
-      color:#e7e7ea;background: rgba(0,0,0,.45);
+      color:var(--text);background: rgba(255,255,255,.98);
       border:1px solid var(--border);
       border-left:7px solid var(--jd-green);
       padding:9px 12px;border-radius:14px;
@@ -190,15 +218,27 @@
 
     /* Adjuntos UI */
     .attLinks{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
-    a{color:#d9f1d3}
+    a{color:var(--jd-green);font-weight:700}
     .pillX{
       display:inline-flex;align-items:center;justify-content:center;
       width:22px;height:22px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.15);
-      background: rgba(176,0,32,.16);
-      color:#ffd7dc;font-weight:900;
+      border:1px solid rgba(161,0,26,.16);
+      background: rgba(161,0,26,.12);
+      color:#7f0014;font-weight:900;
       cursor:pointer;
     }
+
+    /* Botones pequeños: hacerlos más visibles sobre fondo claro */
+    button.small.secondary{
+      border-color: rgba(54,124,43,.55);
+      color: var(--jd-green);
+      background: rgba(54,124,43,.12);
+      box-shadow: 0 6px 12px rgba(54,124,43,.04);
+    }
+    button.small.primary{box-shadow: 0 10px 18px rgba(54,124,43,.10)}
+
+    /* Acciones: texto negro para mejorar legibilidad */
+    .actions button{color:#000 !important; font-weight:700}
 
     /* ✅ FIX SUPERPOSICIÓN: el formulario ahora WRAPEA */
     .row-add{
@@ -473,6 +513,24 @@
         .replaceAll('"',"&quot;").replaceAll("'","&#039;");
     }
 
+    function formatDateVal(v){
+      if (!v) return "";
+      if (v instanceof Date){
+        const dd = String(v.getDate()).padStart(2,'0');
+        const mm = String(v.getMonth()+1).padStart(2,'0');
+        const yyyy = v.getFullYear();
+        return `${dd}/${mm}/${yyyy}`;
+      }
+      // ISO yyyy-mm-dd
+      const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+      const d = new Date(v);
+      if (!isNaN(d)){
+        return formatDateVal(d);
+      }
+      return String(v);
+    }
+
     function errText(e){
       const code = e?.code ? `[${e.code}] ` : "";
       const msg = e?.message || String(e);
@@ -702,39 +760,41 @@
 
     function renderRow(id, r) {
       const dt = r.createdAt?.toDate ? r.createdAt.toDate() : null;
-      const dtTxt = dt ? dt.toLocaleString() : "";
+      const dtTxt = dt ? formatDateVal(dt) : "";
       const isEditing = (editingRowId === id);
 
       if (!isEditing) {
         return `
-          <tr data-id="${id}">
-            <td>${escapeHtml(dtTxt)}</td>
-            <td>${escapeHtml(r.factura)}</td>
-            <td>${escapeHtml(r.division)}</td>
-            <td>${escapeHtml(r.transporte)}</td>
-            <td>${escapeHtml(r.carpeta)}</td>
-            <td>${escapeHtml(r.dua)}</td>
-            <td>${escapeHtml(r.fecha_estimada)}</td>
-            <td>${escapeHtml(r.oc)}</td>
+            <tr data-id="${id}">
+              <td><div class="cellInner">${escapeHtml(dtTxt)}</div></td>
+              <td><div class="cellInner">${escapeHtml(r.factura)}</div></td>
+              <td><div class="cellInner">${escapeHtml(r.division)}</div></td>
+              <td><div class="cellInner">${escapeHtml(r.transporte)}</div></td>
+              <td><div class="cellInner">${escapeHtml(r.carpeta)}</div></td>
+              <td><div class="cellInner">${escapeHtml(r.dua)}</div></td>
+              <td><div class="cellInner">${escapeHtml(formatDateVal(r.fecha_estimada))}</div></td>
+              <td><div class="cellInner">${escapeHtml(r.oc)}</div></td>
 
-            <td>${escapeHtml(r.cierre)}</td>
-            <td>${escapeHtml(r.cond)}</td>
-            <td>${escapeHtml(r.wis)}</td>
+              <td><div class="cellInner">${escapeHtml(r.cierre)}</div></td>
+              <td><div class="cellInner">${escapeHtml(r.cond)}</div></td>
+              <td><div class="cellInner">${escapeHtml(r.wis)}</div></td>
 
-            <td>${escapeHtml(r.fecha_deposito)}</td>
-            <td>${escapeHtml(r.confirmacion_llegada)}</td>
+              <td><div class="cellInner">${escapeHtml(formatDateVal(r.fecha_deposito))}</div></td>
+              <td><div class="cellInner">${escapeHtml(r.confirmacion_llegada)}</div></td>
 
-            <td>${renderPackingCell(id, r)}</td>
-            <td>${renderAttachmentsCell(id, r)}</td>
+              <td><div class="cellInner">${renderPackingCell(id, r)}</div></td>
+              <td><div class="cellInner">${renderAttachmentsCell(id, r)}</div></td>
 
-            <td>
-              <div class="actions">
-                <button class="small secondary" data-action="edit">Editar</button>
-                <button class="small danger" data-action="delete">Eliminar</button>
-              </div>
-            </td>
-          </tr>
-        `;
+              <td>
+                <div class="cellInner">
+                  <div class="actions">
+                    <button class="small secondary" data-action="edit">Editar</button>
+                    <button class="small danger" data-action="delete">Eliminar</button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          `;
       }
 
       const factura = escapeHtml(r.factura || "");
@@ -753,54 +813,56 @@
 
       return `
         <tr data-id="${id}">
-          <td>${escapeHtml(dtTxt)}</td>
-          <td><input class="cell-input w140" data-field="factura" value="${factura}"></td>
-          <td><input class="cell-input w200" data-field="division" value="${division}"></td>
-          <td><input class="cell-input w200" data-field="transporte" value="${transporte}"></td>
-          <td><input class="cell-input w140" data-field="carpeta" value="${carpeta}"></td>
-          <td><input class="cell-input w140" data-field="dua" value="${dua}"></td>
+          <td><div class="cellInner">${escapeHtml(dtTxt)}</div></td>
+          <td><div class="cellInner"><input class="cell-input w140" data-field="factura" value="${factura}"></div></td>
+          <td><div class="cellInner"><input class="cell-input w200" data-field="division" value="${division}"></div></td>
+          <td><div class="cellInner"><input class="cell-input w200" data-field="transporte" value="${transporte}"></div></td>
+          <td><div class="cellInner"><input class="cell-input w140" data-field="carpeta" value="${carpeta}"></div></td>
+          <td><div class="cellInner"><input class="cell-input w140" data-field="dua" value="${dua}"></div></td>
 
-          <td><input class="cell-input w160" type="date" data-field="fecha_estimada" value="${fecha_estimada}"></td>
-          <td><input class="cell-input w140" data-field="oc" value="${oc}"></td>
+          <td><div class="cellInner"><input class="cell-input w160" type="date" data-field="fecha_estimada" value="${fecha_estimada}"></div></td>
+          <td><div class="cellInner"><input class="cell-input w140" data-field="oc" value="${oc}"></div></td>
 
-          <td>
+          <td><div class="cellInner">
             <select class="cell-input w110" data-field="cierre">
               <option value="SI" ${cierre==="SI" ? "selected" : ""}>SI</option>
               <option value="NO" ${cierre==="NO" ? "selected" : ""}>NO</option>
             </select>
-          </td>
+          </div></td>
 
-          <td>
+          <td><div class="cellInner">
             <select class="cell-input w110" data-field="cond">
               <option value="SI" ${cond==="SI" ? "selected" : ""}>SI</option>
               <option value="NO" ${cond==="NO" ? "selected" : ""}>NO</option>
             </select>
-          </td>
+          </div></td>
 
-          <td>
+          <td><div class="cellInner">
             <select class="cell-input w110" data-field="wis">
               <option value="SI" ${wis==="SI" ? "selected" : ""}>SI</option>
               <option value="NO" ${wis==="NO" ? "selected" : ""}>NO</option>
             </select>
-          </td>
+          </div></td>
 
-          <td><input class="cell-input w160" type="date" data-field="fecha_deposito" value="${fecha_deposito}"></td>
+          <td><div class="cellInner"><input class="cell-input w160" type="date" data-field="fecha_deposito" value="${fecha_deposito}"></div></td>
 
-          <td>
+          <td><div class="cellInner">
             <select class="cell-input w160" data-field="confirmacion_llegada">
               <option value="SI" ${confirmacion_llegada==="SI" ? "selected" : ""}>SI</option>
               <option value="NO" ${confirmacion_llegada==="NO" ? "selected" : ""}>NO</option>
             </select>
-          </td>
+          </div></td>
 
-          <td>${renderPackingCell(id, r)}</td>
-          <td>${renderAttachmentsCell(id, r)}</td>
+          <td><div class="cellInner">${renderPackingCell(id, r)}</div></td>
+          <td><div class="cellInner">${renderAttachmentsCell(id, r)}</div></td>
 
           <td>
-            <div class="actions">
-              <button class="small primary" data-action="save">Guardar</button>
-              <button class="small" data-action="cancel">Cancelar</button>
-              <button class="small danger" data-action="delete">Eliminar</button>
+            <div class="cellInner">
+              <div class="actions">
+                <button class="small primary" data-action="save">Guardar</button>
+                <button class="small" data-action="cancel">Cancelar</button>
+                <button class="small danger" data-action="delete">Eliminar</button>
+              </div>
             </div>
           </td>
         </tr>
